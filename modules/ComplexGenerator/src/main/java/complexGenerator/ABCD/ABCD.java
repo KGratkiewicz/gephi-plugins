@@ -68,12 +68,13 @@ public class ABCD implements Generator {
 
     @Override
     public void generate(ContainerLoader container) {
-        Progress.start(progressTicket, n - 1);
         container.setEdgeDefault(EdgeDirectionDefault.UNDIRECTED);
         List<Integer> W = generateDegreeSequence();
         List<Integer> C = generateCommunitySizes();
-        List<List<Integer>> assigned = assignNodesToCommunities(W, C);
-        Set<Pair<Integer, Integer>> generated = generateABCDGraph(assigned, W, container);
+        if (!cancel) {
+            List<List<Integer>> assigned = assignNodesToCommunities(W, C);
+            Set<Pair<Integer, Integer>> generated = generateABCDGraph(assigned, W, container);
+        }
         Progress.finish(progressTicket);
         progressTicket = null;
     }
@@ -92,11 +93,14 @@ public class ABCD implements Generator {
             nodes.put(i, node);
         }
 
+        Progress.start(progressTicket, communityAssignments.size() * 2);
+
         // Internal edges within communities
         for (List<Integer> community : communityAssignments) {
             int Wi = community.stream().mapToInt(W::get).sum();
             int internalEdges = (int) ((1 - xi) * Wi / 2);
             edges.addAll(sampleInternalEdges(community, W, internalEdges, nodes, container));
+            Progress.progress(progressTicket);
         }
 
         // External edges outside communities
@@ -105,6 +109,7 @@ public class ABCD implements Generator {
             int externalEdges = (int) (xi * Wi / 2);
 
             edges.addAll(sampleExternalEdges(edges, community, W, externalEdges, nodes, container));
+            Progress.progress(progressTicket);
         }
         return edges;
     }
@@ -118,7 +123,7 @@ public class ABCD implements Generator {
         Set<Pair<Integer, Integer>> newEdges = new HashSet<>();
 
         int iterator = 0;
-        while (newEdges.size() < edgeCount && iterator < 10000) {
+        while (newEdges.size() < edgeCount && iterator < 10000 && !cancel) {
             int nodeIdA = pickRandomNode(community, W, rand, newEdges);
             int nodeIdB = pickRandomNode2(community, W, rand, newEdges);
 
@@ -156,7 +161,7 @@ public class ABCD implements Generator {
         Set<Pair<Integer, Integer>> newEdges = new HashSet<>();
 
         int iterator = 0;
-        while (newEdges.size() < externalEdges && iterator < 10000) {
+        while (newEdges.size() < externalEdges && iterator < 10000 && !cancel) {
             int nodeIdA = pickRandomInternalNode(community, W, rand, allEdges);
             int nodeIdB = pickRandomExternalNode(community, W, rand, allEdges);
 
