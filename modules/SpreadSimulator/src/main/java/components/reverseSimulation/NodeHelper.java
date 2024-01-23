@@ -33,7 +33,7 @@ public class NodeHelper {
                 .map(target -> getDistanceFromTargetToSource(source, target, graph))
                 .sorted()
                 .collect(Collectors.toList());
-        return distanceList.get(distanceList.size() -1);
+        return distanceList.get(distanceList.size() - 1);
     }
 
     public static double getAvgDistanceToNodes(Node source, List<Node> targets, Graph graph) {
@@ -63,7 +63,6 @@ public class NodeHelper {
     }
 
     public static Column getBetweeneesColumn(Graph graph) {
-        Node[] nodes = graph.getNodes().toArray();
         GraphDistance distance = new GraphDistance();
         distance.setDirected(false);
         distance.execute(graph);
@@ -76,12 +75,6 @@ public class NodeHelper {
         int count = (int) Arrays.stream(graph.getNodes().toArray()).count();
         dijkstra.compute();
         return 1.0 / (dijkstra.getDistances().values().stream().mapToDouble(Double::doubleValue).sum() * count);
-    }
-
-    public static Optional<Node> findNodeInGraphById(Node node, Graph graph) {
-        return Arrays.stream(graph.getNodes().toArray())
-                .filter(graphNode -> graphNode.getStoreId() == node.getStoreId())
-                .findFirst();
     }
 
 }

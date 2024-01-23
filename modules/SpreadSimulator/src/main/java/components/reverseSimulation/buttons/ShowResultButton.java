@@ -41,32 +41,37 @@ public class ShowResultButton extends JButton {
     private void showDialog(String stateName) {
         JFrame graphFrame = new JFrame("Frame Dialog");
         JPanel graphPanel = new JPanel();
-        graphPanel.setLayout(new GridLayout(5, 4));
-
+        graphPanel.setLayout(new GridLayout(5, 5));
         ImageIcon circleIcon = createCircleIcon(40);
 
+        graphPanel.add(new JLabel("Initial State"));
+        graphPanel.add(createSignLabel("+"));
+        graphPanel.add(new JLabel("Current State"));
+        graphPanel.add(createSignLabel("="));
+        graphPanel.add(new JLabel(createSquareIcon(40,Color.WHITE)));
+
         graphPanel.add(createOtherLabel(circleIcon));
-        graphPanel.add(new JLabel("+"));
+        graphPanel.add(createSignLabel("+"));
         graphPanel.add(createOtherLabel(circleIcon));
-        graphPanel.add(new JLabel("="));
+        graphPanel.add(createSignLabel("="));
         graphPanel.add(new JLabel(createSquareIcon(40,Color.GRAY)));
 
         graphPanel.add(createOtherLabel(circleIcon));
-        graphPanel.add(new JLabel("+"));
+        graphPanel.add(createSignLabel("+"));
         graphPanel.add(createExaminedLabel(circleIcon, stateName));
-        graphPanel.add(new JLabel("="));
+        graphPanel.add(createSignLabel("="));
         graphPanel.add(new JLabel(createSquareIcon(40,Color.YELLOW)));
 
         graphPanel.add(createExaminedLabel(circleIcon, stateName));
-        graphPanel.add(new JLabel("+"));
+        graphPanel.add(createSignLabel("+"));
         graphPanel.add(createOtherLabel(circleIcon));
-        graphPanel.add(new JLabel("="));
+        graphPanel.add(createSignLabel("="));
         graphPanel.add(new JLabel(createSquareIcon(40,Color.RED)));
 
         graphPanel.add(createExaminedLabel(circleIcon, stateName));
-        graphPanel.add(new JLabel("+"));
+        graphPanel.add(createSignLabel("+"));
         graphPanel.add(createExaminedLabel(circleIcon, stateName));
-        graphPanel.add(new JLabel("="));
+        graphPanel.add(createSignLabel("="));
         graphPanel.add(new JLabel(createSquareIcon(40,Color.GREEN)));
 
         graphFrame.setSize(400, 400);
@@ -74,6 +79,14 @@ public class ShowResultButton extends JButton {
         graphFrame.pack();
         graphFrame.setLocationRelativeTo(null);
         graphFrame.setVisible(true);
+    }
+
+    private JLabel createSignLabel(String s) {
+        JLabel label = new JLabel(s);
+        Font labelFont = label.getFont();
+        label.setFont(new Font(labelFont.getName(), Font.BOLD, 12));
+        label.setHorizontalAlignment(SwingConstants.CENTER);
+        return label;
     }
 
     private JLabel createOtherLabel(ImageIcon circleIcon) {

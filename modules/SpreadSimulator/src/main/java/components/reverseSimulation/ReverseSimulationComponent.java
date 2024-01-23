@@ -48,18 +48,17 @@ import java.util.List;
 @Setter
 public class ReverseSimulationComponent extends TopComponent {
 
-    public static final String INITIAL_STATE = "initialState";
     private String modelName;
     private Graph graph;
-    private Graph initialGraph;
     private Simulation currentSimulation;
+//    TODO cofnąć się jeden krok jeżeli condition
     private Simulation lastStepSimulation;
     private List<Simulation> simulationList;
-    private List<List<NodeData>> lastStepSimulationList;
+    private List<List<NodeData>> simulationStatesList;
     private Integer simulationSeries;
     private SimulationModel simulationModel;
-    private int reverseSimulationState = 0;
     private List<NodeRoleDecorator> nodeRoles;
+    private int reverseSimulationState = 0;
 
     public ReverseSimulationComponent() {
         initComponents();
@@ -74,9 +73,6 @@ public class ReverseSimulationComponent extends TopComponent {
             JButton initButton = new JButton("Init");
             initButton.addActionListener(this::initButtonActionPerformed);
             add(initButton);
-        }
-
-        if (reverseSimulationState == 0) {
             return;
         }
 
@@ -97,36 +93,40 @@ public class ReverseSimulationComponent extends TopComponent {
         add(new UsePredictSimulationButton(this));
         add(new UseReverseSeriesSimulationButton(this));
 
+        switch (reverseSimulationState) {
+            case 1:
+                add(new ChangeModelButton(this));
 
-        if (reverseSimulationState == 1) {
-            add(new ChangeModelButton(this));
+                if (nodeRoles == null || nodeRoles.isEmpty()) {
+                    return;
+                }
+                var modelName = new JLabel("Current model: " + getModelName());
+                add(modelName);
 
-            if (nodeRoles == null || nodeRoles.isEmpty()) {
-                return;
-            }
-            var modelName = new JLabel("Current model: " + getModelName());
-            add(modelName);
+                var modelStatisticInput = new ModelSimpleStatisticsDynamicInput(this).generate(nodeRoles);
+                add(modelStatisticInput);
 
-            var modelStatisticInput = new ModelSimpleStatisticsDynamicInput(this).generate(nodeRoles);
-            add(modelStatisticInput);
+                add(new StepButton(currentSimulation, this));
+                add(new StartSimulationButton(currentSimulation, this));
+                JButton seriesButton = new JButton("New series");
+                seriesButton.addActionListener(this::seriesButtonActionPerformed);
+                add(seriesButton);
+                add(new SimulationSeriesButton(currentSimulation, this));
+                add(new ShowResultButton(this));
+                add(new GetReportButton(this));
+                add(new GetSeriesReportButton(this));
 
-            add(new StepButton(currentSimulation, this));
-            add(new StartSimulationButton(currentSimulation, this));
-            JButton seriesButton = new JButton("New series");
-            seriesButton.addActionListener(this::seriesButtonActionPerformed);
-            add(seriesButton);
-            add(new SimulationSeriesButton(currentSimulation, this));
-            add(new ShowResultButton(this));
-            add(new GetReportButton(this));
-            add(new GetSeriesReportButton(this));
-
-            var stepLabel = new JLabel("Step: " + currentSimulation.getStep().toString());
-            var seriesLabel = new JLabel("Series: " + (getSimulationSeries() == null ? 0 : getSimulationSeries().toString()));
-            add(stepLabel);
-            add(seriesLabel);
-        } else if (reverseSimulationState == 2) {
-            JButton placeholderButton = new JButton("Placeholder");
-            add(placeholderButton);
+                var stepLabel = new JLabel("Step: " + currentSimulation.getStep().toString());
+                var seriesLabel = new JLabel("Series: " + (getSimulationSeries() == null ? 0 : getSimulationSeries().toString()));
+                add(stepLabel);
+                add(seriesLabel);
+                break;
+            case 2:
+                JButton placeholderButton = new JButton("Placeholder");
+                add(placeholderButton);
+                break;
+            default:
+                break;
         }
     }
 
@@ -143,9 +143,9 @@ public class ReverseSimulationComponent extends TopComponent {
             var nodesLastStepState = new ArrayList<NodeData>();
             nodes.forEach(node -> {
                     nodesLastStepState.add(new NodeData(node));
-                    node.setAttribute(ConfigLoader.colNameNodeState, node.getAttribute(INITIAL_STATE));
+                    node.setAttribute(ConfigLoader.colNameNodeState, node.getAttribute(ConfigLoader.colNameInitialNodeState));
             });
-            lastStepSimulationList.add(nodesLastStepState);
+            simulationStatesList.add(nodesLastStepState);
             ApplySimulationHelper.PaintGraph(nodes, currentSimulation.getNodeRoleDecoratorList());
         }
         switch (simulationModel.getInteraction().getInteractionType()){
@@ -184,13 +184,13 @@ public class ReverseSimulationComponent extends TopComponent {
     private void initButtonActionPerformed(ActionEvent e) {
         simulationSeries = 1;
         simulationList = new ArrayList<Simulation>();
-        lastStepSimulationList = new ArrayList<>();
+        simulationStatesList = new ArrayList<>();
         this.setSimulationModel(SimulationComponent.getInstance().getSimulationModel());
         this.setGraph(SimulationComponent.getInstance().getGraph());
         var table = graph.getModel().getNodeTable();
-        if(table.getColumn(INITIAL_STATE) == null)
-            table.addColumn(INITIAL_STATE, String.class);
-        List.of(graph.getNodes().toArray()).forEach(node -> node.setAttribute(INITIAL_STATE, node.getAttribute(ConfigLoader.colNameNodeState)));
+        if(table.getColumn(ConfigLoader.colNameInitialNodeState) == null)
+            table.addColumn(ConfigLoader.colNameInitialNodeState, String.class);
+        List.of(graph.getNodes().toArray()).forEach(node -> node.setAttribute(ConfigLoader.colNameInitialNodeState, node.getAttribute(ConfigLoader.colNameNodeState)));
         switch (simulationModel.getInteraction().getInteractionType()){
             case All:
                 this.lastStepSimulation = currentSimulation;
