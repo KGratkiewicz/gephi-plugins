@@ -1,6 +1,7 @@
 package complexGenerator.ABCD;
 
 import Helpers.GenericParamForm.Params;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -8,17 +9,16 @@ public class ABCDParams extends Params<ABCD> {
 
     public Integer n = 1000;
     public Double Imax = 1000.0;
+    public Double xi = 0.1;
     public Integer cmin = 10;
     public Integer cmax = 100;
     public Double beta = 3.5;
     public Integer wmin = 2;
     public Integer wmax = 10;
     public Double gamma = 2.0;
-    public Double xi = 0.1;
-
 
     @Override
-    protected List<String> Descritpion(){
+    protected List<String> Descritpion() {
         var description = new ArrayList<String>();
         description.add("Parameters description:");
         description.add("N - Number of nodes");
