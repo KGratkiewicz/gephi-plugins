@@ -19,11 +19,6 @@ import components.simulation.SimulationRelativeNodes;
 import components.simulationLogic.SimulationComponent;
 import configLoader.ConfigLoader;
 import helper.ApplySimulationHelper;
-import org.gephi.graph.api.GraphController;
-import org.gephi.graph.api.Node;
-import org.openide.util.Lookup;
-import simulationModel.node.NodeRoleDecorator;
-import simulationModel.SimulationModel;
 import lombok.Getter;
 import lombok.Setter;
 import org.gephi.graph.api.Graph;
@@ -31,13 +26,14 @@ import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.windows.TopComponent;
+import simulationModel.SimulationModel;
+import simulationModel.node.NodeRoleDecorator;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @ConvertAsProperties(dtd = "-//Simulation//ReverseSimulation//EN", autostore = false)
 @TopComponent.Description(preferredID = "ReverseSimulation",
