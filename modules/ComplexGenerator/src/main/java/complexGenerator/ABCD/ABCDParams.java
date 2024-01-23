@@ -23,15 +23,16 @@ public class ABCDParams extends Params<ABCD> {
         description.add("Parameters description:");
         description.add("N - Number of nodes");
         description.add("Imax - Maximum number of iteration while generating nodes and communities (default number should be enough)");
-        description.add("NODES SECTION");
-        description.add("wmin - Minimum degree with one node");
-        description.add("wmax - Maxium degree with one node");
-        description.add("gamma - Degree power law exponent");
+        description.add("xi - Mixing parameter for connections outside communities");
         description.add("COMMUNITIES SECTION");
         description.add("cmin - Minimum size of community");
         description.add("cmax - Maximum size of community");
         description.add("beta - Size power law exponent");
-        description.add("xi - Mixing parameter for connections outside communities");
+        description.add("NODES SECTION");
+        description.add("wmin - Minimum degree with one node");
+        description.add("wmax - Maxium degree with one node");
+        description.add("gamma - Degree power law exponent");
+
 
         return description;
     }
