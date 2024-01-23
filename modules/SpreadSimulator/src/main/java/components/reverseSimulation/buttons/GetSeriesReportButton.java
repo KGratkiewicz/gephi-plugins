@@ -40,7 +40,7 @@ public class GetSeriesReportButton extends JButton {
             if (optionDialog.isSuccessful()) {
                 Graph graph = Lookup.getDefault().lookup(GraphController.class).getGraphModel().getGraph();
                 var lastStepNodeData = Arrays.stream(graph.getNodes().toArray()).map(NodeData::new).collect(Collectors.toList());
-                var fullList = Stream.of(reverseSimulationComponent.getLastStepSimulationList(), List.of(lastStepNodeData)).flatMap(Collection::stream).collect(Collectors.toList());
+                var fullList = Stream.of(reverseSimulationComponent.getSimulationStatesList(), List.of(lastStepNodeData)).flatMap(Collection::stream).collect(Collectors.toList());
                 showReport(optionDialog.getExaminedStateAndRole(), fullList);
             }
             optionDialog.dispose();
