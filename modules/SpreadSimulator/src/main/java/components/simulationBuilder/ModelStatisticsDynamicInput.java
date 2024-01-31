@@ -44,6 +44,11 @@ public class ModelStatisticsDynamicInput {
             roleCoverageField.getDocument().addDocumentListener(new NodeRoleListener(role, roleCoverageField));
             panel.add(roleCoverageField, gbc);
 
+            gbc.gridy = row++;
+            role.getNodeStates();
+            var defaultStateDropdown = new DefaultStateDropdown().generate(component, role);
+            panel.add(defaultStateDropdown);
+
             for (NodeStateDecorator state : role.getNodeStates()) {
                 gbc.insets = new Insets(padding, padding, padding, padding);
                 gbc.gridy = row++;
