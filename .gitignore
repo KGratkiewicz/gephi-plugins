@@ -12,8 +12,8 @@ local.properties
 .idea/
 target/
 build/
-*/reports
-*/models
+reports/
+models/
 .run
 .idea/sonarlint
 *.iml
