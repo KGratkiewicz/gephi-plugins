@@ -31,6 +31,7 @@ public class AdvancedAssigmentButton extends JButton {
 
         JTextField numOfNodesInput;
         JComboBox centralityRateDropdown;
+        JTextField paramInput;
         JCheckBox descendingCheckbox;
 
         @Override
@@ -58,7 +59,7 @@ public class AdvancedAssigmentButton extends JButton {
             var centralityRateLabel = new JLabel("Select Strategy:");
             centralityRateLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
             var centralityRateOptions = new String[]{
-                    "Random", "Random-Random","Closeness", "Harmonic Closeness", "Betweenness", "Degree", "Eigenvector", "HITS - hub", "HITS - authority", "Eccentricity", "Modularity"
+                    "Random", "Random-Random", "Equal Degree","Closeness", "Harmonic Closeness", "Betweenness", "Degree", "Eigenvector", "HITS - hub", "HITS - authority", "Eccentricity", "Modularity"
             };
             centralityRateDropdown = new JComboBox<>(centralityRateOptions);
             centralityRateDropdown.setAlignmentX(Component.LEFT_ALIGNMENT);
