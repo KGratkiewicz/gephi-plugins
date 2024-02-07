@@ -14,6 +14,7 @@ target/
 build/
 reports/
 models/
+simulations/
 .run
 .idea/sonarlint
 *.iml
