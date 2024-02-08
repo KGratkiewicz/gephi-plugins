@@ -110,26 +110,28 @@ public class ApplyButton extends JButton {
         }
 
         private void RandomNStrategy(Graph graph, Integer numOfNodes, Boolean descending, NodeRoleDecorator nodeRoleName, String nodeStateName) {
-            Node[] nodes = graph.getNodes().toArray();
+            var nodes = Arrays.stream(graph.getNodes().toArray()).collect(Collectors.toList());
+            nodes = nodes.stream().filter(node -> node.getAttribute(ConfigLoader.colNameNodeState.toString()).toString() == nodeRoleName.getDefaultStateName().toString()).collect(Collectors.toList());
             var rnd = new Random();
             for (int i = 0; i < numOfNodes; i++) {
-                var index = rnd.nextInt(nodes.length);
-                var selectedNode = nodes[index];
-                selectedNode.setAttribute(ConfigLoader.colNameNodeRole, nodeRoleName);
+                var index = rnd.nextInt((int) nodes.stream().count());
+                var selectedNode = nodes.get(index);
+                selectedNode.setAttribute(ConfigLoader.colNameNodeRole, nodeRoleName.getNodeRole().getName().toString());
                 selectedNode.setAttribute(ConfigLoader.colNameNodeState, nodeStateName);
             }
         }
 
         private void RandomRandomStrategy(Graph graph, Integer numOfNodes, Boolean descending, NodeRoleDecorator nodeRoleName, String nodeStateName) {
-            Node[] nodes = graph.getNodes().toArray();
+            var nodes = Arrays.stream(graph.getNodes().toArray()).collect(Collectors.toList());
+            nodes = nodes.stream().filter(node -> node.getAttribute(ConfigLoader.colNameNodeState.toString()).toString() == nodeRoleName.getDefaultStateName().toString()).collect(Collectors.toList());
             var rnd = new Random();
             for (int i = 0; i < numOfNodes; i++) {
-                var index = rnd.nextInt(nodes.length);
-                var selectedNode = nodes[index];
+                var index = rnd.nextInt((int) nodes.stream().count());
+                var selectedNode = nodes.get(index);
                 var neighbours = graph.getNeighbors(selectedNode).toArray();
                 index = rnd.nextInt(neighbours.length);
                 selectedNode = neighbours[index];
-                selectedNode.setAttribute(ConfigLoader.colNameNodeRole, nodeRoleName);
+                selectedNode.setAttribute(ConfigLoader.colNameNodeRole, nodeRoleName.getNodeRole().getName().toString());
                 selectedNode.setAttribute(ConfigLoader.colNameNodeState, nodeStateName);
             }
         }
