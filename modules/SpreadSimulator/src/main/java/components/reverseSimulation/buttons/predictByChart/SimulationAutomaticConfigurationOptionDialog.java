@@ -215,6 +215,7 @@ public class SimulationAutomaticConfigurationOptionDialog extends JDialog {
             diffList.add(Pair.of(currentNumberOfNodes - 1, pairOfDiff.first()));
             if (pairOfDiff.first() <= pairOfDiff.second()) {
                 bestSolutionFound = true;
+                diffList.add(Pair.of(currentNumberOfNodes, pairOfDiff.second()));
             } else {
                 simulationReportList = nextSimulation;
             }

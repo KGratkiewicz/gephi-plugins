@@ -68,7 +68,7 @@ public class ReportDialog {
         mainPanel.add(Box.createVerticalStrut(100));
 
         if (diffList != null) {
-            var bestSolutionDiff = diffList.get(diffList.size() - 1);
+            var bestSolutionDiff = diffList.get(diffList.size() - 2);
             mainPanel.add(getLabelFromStringAndSize(
                     22,
                     true,
@@ -77,9 +77,11 @@ public class ReportDialog {
             mainPanel.add(getLabelFromStringAndSize(
                     22,
                     true,
-                    "Difference for each iteration "));
+                    "Difference for each iteration:"));
 
-            diffList.subList(0, diffList.size() - 2).forEach(e ->
+            diffList.remove(diffList.get(diffList.size() - 2));
+
+            diffList.forEach(e ->
                     mainPanel.add(getLabelFromStringAndSize(
                             16,
                             true,
