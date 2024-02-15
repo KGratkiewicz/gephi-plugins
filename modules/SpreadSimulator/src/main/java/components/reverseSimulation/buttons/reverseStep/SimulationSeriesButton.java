@@ -1,11 +1,17 @@
-package components.reverseSimulation.buttons;
+package components.reverseSimulation.buttons.reverseStep;
 
 import components.reverseSimulation.ReverseSimulationComponent;
 import components.simulation.Simulation;
+import components.simulationLogic.SimulationComponent;
 import configLoader.ConfigLoader;
 import it.unimi.dsi.fastutil.Pair;
 import lombok.Getter;
 import lombok.Setter;
+import org.gephi.graph.api.Graph;
+import org.gephi.graph.api.GraphController;
+import org.gephi.utils.longtask.spi.LongTask;
+import org.gephi.utils.progress.ProgressTicket;
+import org.openide.util.Lookup;
 import simulationModel.node.NodeStateDecorator;
 
 import javax.swing.*;
@@ -16,6 +22,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class SimulationSeriesButton extends JButton {
+
     private final ReverseSimulationComponent reverseSimulationComponent;
     private Simulation simulation;
 
@@ -27,25 +34,41 @@ public class SimulationSeriesButton extends JButton {
     }
 
     private void openInputDialogAndRunSimulation() {
+//        TODO tutaj zmiana
         OptionDialog dialog = new OptionDialog(null, reverseSimulationComponent, "Stop condition");
         dialog.setVisible(true);
         dialog.dispose();
+        var stepNumber = SimulationComponent.getInstance().getCurrentSimulation().getStep();
         if (dialog.isSuccessful()) {
+            Graph graph = Lookup.getDefault().lookup(GraphController.class).getGraphModel().getGraph();
+            var table = graph.getModel().getNodeTable();
+            if(table.getColumn(ConfigLoader.colNameTempNodeState) == null)
+                table.addColumn(ConfigLoader.colNameTempNodeState, String.class);
+
             for(int i = 1; i < dialog.getConductSimulations(); i++){
-                runSimulation(dialog.getExaminedStateAndRole(), dialog.nodesNumberToStop);
+                runSimulation(stepNumber);
                 this.simulation = reverseSimulationComponent.NewSeries(simulation);
             }
-            runSimulation(dialog.getExaminedStateAndRole(), dialog.nodesNumberToStop);
+            runSimulation(stepNumber);
         }
         reverseSimulationComponent.initComponents();
         reverseSimulationComponent.repaint();
         reverseSimulationComponent.revalidate();
     }
 
-    private void runSimulation(String examinedStateAndRole, int nodesToStop) {
-        while(!stopCondition(examinedStateAndRole, nodesToStop)) {
+    private void runSimulation(int stepNumber) {
+        while(simulation.getStep() < stepNumber - 1) {
             simulation.Step();
         }
+
+        List.of(simulation.getGraph().getNodes().toArray()).forEach(e ->
+                e.setAttribute(ConfigLoader.colNameTempNodeState, e.getAttribute(ConfigLoader.colNameNodeState).toString()));
+        simulation.Step();
+        List.of(simulation.getGraph().getNodes().toArray()).forEach(e -> {
+            if (e.getAttribute(ConfigLoader.colNameNodeState).equals(e.getAttribute(ConfigLoader.colNameTempNodeState))) {
+                e.setAttribute(ConfigLoader.colNameTempNodeState, "");
+            }
+        });
 
         reverseSimulationComponent.initComponents();
         reverseSimulationComponent.revalidate();
@@ -77,7 +100,6 @@ public class SimulationSeriesButton extends JButton {
         private String examinedStateAndRole;
         private JComboBox<String> rolesChoseFromList;
         private JTextField simulationNumberFiled;
-        private JTextField numberOfNodesButton;
         private int conductSimulations;
         private int nodesNumberToStop;
         private boolean successful = false;
@@ -105,10 +127,6 @@ public class SimulationSeriesButton extends JButton {
             add(new JLabel("Choose a value:"));
             add(rolesChoseFromList);
 
-            numberOfNodesButton = new JTextField(10);
-            add(new JLabel("Number of nodes:"));
-            add(numberOfNodesButton);
-
             JButton okButton = new JButton("OK");
             okButton.addActionListener(e -> onOk());
             add(okButton);
@@ -121,7 +139,6 @@ public class SimulationSeriesButton extends JButton {
             try {
                 examinedStateAndRole = Objects.requireNonNull(rolesChoseFromList.getSelectedItem()).toString();
                 conductSimulations = Integer.parseInt(simulationNumberFiled.getText());
-                nodesNumberToStop = Integer.parseInt(numberOfNodesButton.getText());
                 successful = true;
                 setVisible(false);
             } catch (NumberFormatException ex) {
@@ -130,4 +147,5 @@ public class SimulationSeriesButton extends JButton {
         }
 
     }
+
 }

@@ -9,6 +9,7 @@ import components.simulation.SimulationRelativeNodes;
 import configLoader.ConfigLoader;
 import helper.ApplySimulationHelper;
 import helper.ObjectMapperHelper;
+import lombok.Setter;
 import simulationModel.interaction.RelativeEdgesInteraction;
 import simulationModel.interaction.RelativeFreeEdgesInteraction;
 import simulationModel.interaction.RelativeFreeNodesInteraction;
@@ -52,6 +53,7 @@ import java.util.List;
 public class SimulationComponent extends TopComponent {
 
     private Graph graph;
+    @Setter
     private Simulation currentSimulation;
     private List<Simulation> simulationList;
     private Integer simulationSeries;

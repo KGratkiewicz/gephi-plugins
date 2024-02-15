@@ -19,7 +19,7 @@
       "destinationState": {
         "name": "susceptible"
       },
-      "probability": 0.2,
+      "probability": 0.6,
       "provocativeNeighborName": [
         "susceptible"
       ]

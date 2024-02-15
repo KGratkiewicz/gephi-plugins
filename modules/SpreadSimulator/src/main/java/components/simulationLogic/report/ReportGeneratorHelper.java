@@ -461,7 +461,7 @@ public class ReportGeneratorHelper {
         graphFrame.setVisible(true);
     }
 
-    private static List<Pair<String, Map<Integer, Double>>> getValuesFromReport(List<SimulationStepReport> report, int roleNumber) {
+    public static List<Pair<String, Map<Integer, Double>>> getValuesFromReport(List<SimulationStepReport> report, int roleNumber) {
         List<SimulationStepReport.NodeRoleReport> correctRoleList = report.stream().map(step -> step.getRoleReports().get(roleNumber)).collect(Collectors.toList());
         int statesNumber = correctRoleList.get(0).getStatesReport().size();
 

@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Getter
+@Setter
 public class SimulationStepReport {
 
     private Integer step;

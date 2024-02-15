@@ -55,7 +55,7 @@ public class ModelSimpleStatisticsDynamicInput {
                         .filter(nodeRoleDecorator -> nodeRoleDecorator.getNodeRole().getName().equals(role.getNodeRole().getName()))
                         .findFirst();
             }
-            roleCoverageField.setText(String.valueOf(optionalRole.map(NodeRoleDecorator::getCoverage).orElse((double) -1)));
+            roleCoverageField.setText(String.format("%.5f", optionalRole.map(NodeRoleDecorator::getCoverage).orElse((double) -1)));
             roleCoverageField.setEditable(false);
             panel.add(roleCoverageField, gbc);
 
@@ -78,7 +78,7 @@ public class ModelSimpleStatisticsDynamicInput {
                         .stream()
                         .filter(optionalState -> optionalState.getNodeState().getName().equals(state.getNodeState().getName()))
                         .findFirst().orElse(new NodeStateDecorator()));
-                stateCoverageField.setText(String.valueOf(optionalNodeState.map(NodeStateDecorator::getCoverage).orElse((double) -1)));
+                stateCoverageField.setText(String.format("%.5f", optionalNodeState.map(NodeStateDecorator::getCoverage).orElse((double) -1)));
                 stateCoverageField.setEditable(false);
                 panel.add(stateCoverageField, gbc);
             }

@@ -1,14 +1,14 @@
 package components.reverseSimulation;
 
-import components.reverseSimulation.buttons.ChangeModelButton;
-import components.reverseSimulation.buttons.GetReportButton;
-import components.reverseSimulation.buttons.GetSeriesReportButton;
-import components.reverseSimulation.buttons.ShowResultButton;
-import components.reverseSimulation.buttons.SimulationSeriesButton;
-import components.reverseSimulation.buttons.StartSimulationButton;
-import components.reverseSimulation.buttons.StepButton;
-import components.reverseSimulation.buttons.UsePredictSimulationButton;
-import components.reverseSimulation.buttons.UseReverseSeriesSimulationButton;
+import components.reverseSimulation.buttons.predictByChart.StartPredictionButton;
+import components.reverseSimulation.buttons.predictByChart.PredictSimulationByChartButton;
+import components.reverseSimulation.buttons.reverseStep.ChangeModelButton;
+import components.reverseSimulation.buttons.reverseStep.SimulationSeriesButton;
+import components.reverseSimulation.buttons.reverseStep.StartSimulationButton;
+import components.reverseSimulation.buttons.reverseStep.StepButton;
+import components.reverseSimulation.buttons.reverseStep.UseReverseSeriesSimulationButton;
+import components.reverseSimulation.buttons.reverseStep.report.ReportButton;
+import components.reverseSimulation.buttons.reverseStep.visibility.VisibilityOptionsButton;
 import components.reverseSimulation.model.NodeData;
 import components.simulation.Simulation;
 import components.simulation.SimulationAll;
@@ -51,7 +51,7 @@ public class ReverseSimulationComponent extends TopComponent {
     private String modelName;
     private Graph graph;
     private Simulation currentSimulation;
-//    TODO cofnąć się jeden krok jeżeli condition
+//    TODO TW cofnąć się jeden krok jeżeli condition
     private Simulation lastStepSimulation;
     private List<Simulation> simulationList;
     private List<List<NodeData>> simulationStatesList;
@@ -69,13 +69,6 @@ public class ReverseSimulationComponent extends TopComponent {
     public void initComponents() {
         this.removeAll();
         setLayout(new FlowLayout());
-        if (reverseSimulationState == 0) {
-            JButton initButton = new JButton("Init");
-            initButton.addActionListener(this::initButtonActionPerformed);
-            add(initButton);
-            return;
-        }
-
         Label simulationName = new Label();
         switch (reverseSimulationState) {
             case 1:
@@ -89,12 +82,24 @@ public class ReverseSimulationComponent extends TopComponent {
         }
         simulationName.setBounds(5,5, 400,75);
 
-        add(simulationName);
-        add(new UsePredictSimulationButton(this));
-        add(new UseReverseSeriesSimulationButton(this));
 
+        JButton initButton = new JButton("Init");
+        initButton.addActionListener(this::initButtonActionPerformed);
+        add(initButton);
         switch (reverseSimulationState) {
+            case 0:
+                add(simulationName);
+                if (simulationSeries != null) {
+                    add(new PredictSimulationByChartButton(this));
+                    add(new UseReverseSeriesSimulationButton(this));
+                }
+                break;
             case 1:
+                JButton resetButton = new JButton("Reset");
+                resetButton.addActionListener(this::initButtonActionPerformed);
+                add(resetButton);
+                add(simulationName);
+                add(new PredictSimulationByChartButton(this));
                 add(new ChangeModelButton(this));
 
                 if (nodeRoles == null || nodeRoles.isEmpty()) {
@@ -112,9 +117,8 @@ public class ReverseSimulationComponent extends TopComponent {
                 seriesButton.addActionListener(this::seriesButtonActionPerformed);
                 add(seriesButton);
                 add(new SimulationSeriesButton(currentSimulation, this));
-                add(new ShowResultButton(this));
-                add(new GetReportButton(this));
-                add(new GetSeriesReportButton(this));
+                add(new ReportButton(this));
+                add(new VisibilityOptionsButton(this));
 
                 var stepLabel = new JLabel("Step: " + currentSimulation.getStep().toString());
                 var seriesLabel = new JLabel("Series: " + (getSimulationSeries() == null ? 0 : getSimulationSeries().toString()));
@@ -122,8 +126,9 @@ public class ReverseSimulationComponent extends TopComponent {
                 add(seriesLabel);
                 break;
             case 2:
-                JButton placeholderButton = new JButton("Placeholder");
-                add(placeholderButton);
+                add(simulationName);
+                add(new UseReverseSeriesSimulationButton(this));
+                add(new StartPredictionButton(this));
                 break;
             default:
                 break;
@@ -176,49 +181,57 @@ public class ReverseSimulationComponent extends TopComponent {
     private boolean wasRanSimulation() {
         Simulation simulation = SimulationComponent.getInstance().getCurrentSimulation();
         if (simulation != null) {
-            reverseSimulationState = simulation.getStep() > 0? 1 : 0;
+            return simulation.getStep() > 0;
         }
         return false;
     }
 
     private void initButtonActionPerformed(ActionEvent e) {
-        simulationSeries = 1;
-        simulationList = new ArrayList<Simulation>();
-        simulationStatesList = new ArrayList<>();
-        this.setSimulationModel(SimulationComponent.getInstance().getSimulationModel());
-        this.setGraph(SimulationComponent.getInstance().getGraph());
-        var table = graph.getModel().getNodeTable();
-        if(table.getColumn(ConfigLoader.colNameInitialNodeState) == null)
-            table.addColumn(ConfigLoader.colNameInitialNodeState, String.class);
-        List.of(graph.getNodes().toArray()).forEach(node -> node.setAttribute(ConfigLoader.colNameInitialNodeState, node.getAttribute(ConfigLoader.colNameNodeState)));
-        switch (simulationModel.getInteraction().getInteractionType()){
-            case All:
-                this.lastStepSimulation = currentSimulation;
-                this.currentSimulation = new SimulationAll(graph, simulationModel);
-                break;
-            case RelativeEdges:
-                this.lastStepSimulation = currentSimulation;
-                this.currentSimulation = new SimulationRelativeEdges(graph, simulationModel);
-                break;
-            case RelativeFreeEdges:
-                this.lastStepSimulation = currentSimulation;
-                this.currentSimulation = new SimulationRelativeFreeEdges(graph, simulationModel);
-                break;
-            case RelativeNodes:
-                this.lastStepSimulation = currentSimulation;
-                this.currentSimulation = new SimulationRelativeNodes(graph, simulationModel);
-                break;
-            case RelativeFreeNodes:
-                this.lastStepSimulation = currentSimulation;
-                this.currentSimulation = new SimulationRelativeFreeNodes(graph, simulationModel);
-                break;
-            default:
-                break;
+        if (wasRanSimulation()) {
+            simulationSeries = 1;
+            simulationList = new ArrayList<>();
+            simulationStatesList = new ArrayList<>();
+            this.setSimulationModel(SimulationComponent.getInstance().getSimulationModel());
+            this.setGraph(SimulationComponent.getInstance().getGraph());
+            var table = graph.getModel().getNodeTable();
+            if(table.getColumn(ConfigLoader.colNameInitialNodeState) == null)
+                table.addColumn(ConfigLoader.colNameInitialNodeState, String.class);
+            List.of(graph.getNodes().toArray()).forEach(node -> {
+                if (node.getAttribute(ConfigLoader.colNameInitialNodeState) == null) {
+                    node.setAttribute(ConfigLoader.colNameInitialNodeState, node.getAttribute(ConfigLoader.colNameNodeState));
+                }
+            });
+            switch (simulationModel.getInteraction().getInteractionType()){
+                case All:
+                    this.lastStepSimulation = currentSimulation;
+                    this.currentSimulation = new SimulationAll(graph, simulationModel);
+                    break;
+                case RelativeEdges:
+                    this.lastStepSimulation = currentSimulation;
+                    this.currentSimulation = new SimulationRelativeEdges(graph, simulationModel);
+                    break;
+                case RelativeFreeEdges:
+                    this.lastStepSimulation = currentSimulation;
+                    this.currentSimulation = new SimulationRelativeFreeEdges(graph, simulationModel);
+                    break;
+                case RelativeNodes:
+                    this.lastStepSimulation = currentSimulation;
+                    this.currentSimulation = new SimulationRelativeNodes(graph, simulationModel);
+                    break;
+                case RelativeFreeNodes:
+                    this.lastStepSimulation = currentSimulation;
+                    this.currentSimulation = new SimulationRelativeFreeNodes(graph, simulationModel);
+                    break;
+                default:
+                    break;
+            }
+            initComponents();
+            revalidate();
+            repaint();
+        } else {
+            JOptionPane.showMessageDialog(null, "Please run normal simulation first.", "Initial error", JOptionPane.ERROR_MESSAGE);
         }
-        wasRanSimulation();
-        initComponents();
-        revalidate();
-        repaint();
+
     }
 
     @Override
