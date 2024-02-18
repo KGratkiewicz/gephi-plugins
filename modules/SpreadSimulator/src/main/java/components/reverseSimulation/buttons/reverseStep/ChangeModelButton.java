@@ -1,4 +1,4 @@
-package components.reverseSimulation.buttons;
+package components.reverseSimulation.buttons.reverseStep;
 
 import components.reverseSimulation.ReverseSimulationComponent;
 import configLoader.ConfigLoader;

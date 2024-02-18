@@ -1,4 +1,4 @@
-package components.reverseSimulation.buttons;
+package components.reverseSimulation.buttons.predictByChart;
 
 import components.reverseSimulation.ReverseSimulationComponent;
 
@@ -6,20 +6,20 @@ import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-public class UsePredictSimulationButton extends JButton {
+public class StartPredictionButton extends JButton {
 
     private final ReverseSimulationComponent reverseSimulationComponent;
 
-    public UsePredictSimulationButton(ReverseSimulationComponent reverseSimulationComponent) {
-        this.setText("Use Predict Simulation");
+    public StartPredictionButton(ReverseSimulationComponent reverseSimulationComponent) {
+        this.setText("Start Prediction");
         this.reverseSimulationComponent = reverseSimulationComponent;
-        this.addActionListener(new UsePredictSimulationButton.PredictSimulationListener());
+        this.addActionListener(new AutomaticPredictionListener());
     }
 
-    private class PredictSimulationListener implements ActionListener {
+    private class AutomaticPredictionListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
-            reverseSimulationComponent.setReverseSimulationState(2);
+            new PredictionTypeDialog(reverseSimulationComponent, "Predict Type");
             reverseSimulationComponent.initComponents();
             reverseSimulationComponent.revalidate();
             reverseSimulationComponent.repaint();

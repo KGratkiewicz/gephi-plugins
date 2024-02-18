@@ -1,4 +1,4 @@
-package components.reverseSimulation.buttons;
+package components.reverseSimulation.buttons.reverseStep.report;
 
 import components.reverseSimulation.NodeHelper;
 import components.reverseSimulation.ReverseSimulationComponent;
@@ -23,33 +23,40 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class GetSeriesReportButton extends JButton {
+public class ReportButton extends JButton {
     private final ReverseSimulationComponent reverseSimulationComponent;
+//    private ReportDialog dialog;
 
-    public GetSeriesReportButton(ReverseSimulationComponent reverseSimulationComponent) {
-        this.setText("Get Series Report");
+    public ReportButton(ReverseSimulationComponent reverseSimulationComponent) {
+        this.setText("Get Report");
         this.reverseSimulationComponent = reverseSimulationComponent;
-        this.addActionListener(new GetSeriesReport());
+        this.addActionListener(new ResultsListener());
     }
 
-    private class GetSeriesReport implements ActionListener {
+    private class ResultsListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
-            OptionDialog optionDialog = new OptionDialog(null, reverseSimulationComponent, "Option Dialog");
-            optionDialog.setVisible(true);
-            if (optionDialog.isSuccessful()) {
-                Graph graph = Lookup.getDefault().lookup(GraphController.class).getGraphModel().getGraph();
-                var lastStepNodeData = Arrays.stream(graph.getNodes().toArray()).map(NodeData::new).collect(Collectors.toList());
-                var fullList = Stream.of(reverseSimulationComponent.getSimulationStatesList(), List.of(lastStepNodeData)).flatMap(Collection::stream).collect(Collectors.toList());
-                showReport(optionDialog.getExaminedStateAndRole(), fullList);
+            ReportDialog dialog = new ReportDialog(null, reverseSimulationComponent, "Option Dialog");
+            dialog.setVisible(true);
+            if (dialog.isSuccessful()) {
+                switch (dialog.getOption()) {
+                    case 1:
+                        showSingleReport(dialog.getExaminedStateAndRole());
+                        break;
+                    case 2:
+                        Graph graph = Lookup.getDefault().lookup(GraphController.class).getGraphModel().getGraph();
+                        var lastStepNodeData = Arrays.stream(graph.getNodes().toArray()).map(NodeData::new).collect(Collectors.toList());
+                        var fullList = Stream.of(reverseSimulationComponent.getSimulationStatesList(), List.of(lastStepNodeData)).flatMap(Collection::stream).collect(Collectors.toList());
+                        showSeriesReport(dialog.getExaminedStateAndRole(), fullList);
+                        break;
+                    default:
+                        break;
+                }
             }
-            optionDialog.dispose();
-            reverseSimulationComponent.initComponents();
-            reverseSimulationComponent.revalidate();
-            reverseSimulationComponent.repaint();
+            dialog.dispose();
         }
 
-        private void showReport(String examinedStateAndRole, List<List<NodeData>> fullList) {
+        private void showSeriesReport(String examinedStateAndRole, List<List<NodeData>> fullList) {
             JFrame frame = new JFrame("Reverse Step Simulation Report");
             JPanel panel = new JPanel();
             panel.setLayout(new GridBagLayout());
@@ -93,13 +100,96 @@ public class GetSeriesReportButton extends JButton {
                 panel.add(seriesLabel, gbc);
                 gbc.gridy++;
 
-                Object[][] predictData = generatePredictData(examinedStateAndRole.split(":")[1], fullList.get(i));
+                Object[][] predictData = generatePredictDataForSeries(examinedStateAndRole.split(":")[1], fullList.get(i));
                 JTable predictTable = new JTable(new DefaultTableModel(predictData, predictColumnNames));
                 JScrollPane predictScrollPane = new JScrollPane(predictTable);
                 setPreferredTableSize(predictScrollPane, predictTable);
                 panel.add(predictScrollPane, gbc);
                 gbc.gridy++;
             }
+
+            JScrollPane mainScrollPane = new JScrollPane(panel);
+            frame.setSize(1200, 800);
+            frame.add(mainScrollPane);
+            frame.pack();
+            frame.setLocationRelativeTo(null);
+            frame.setVisible(true);
+        }
+
+        private Object[][] generatePredictDataForSeries(String stateName, List<NodeData> nodesData) {
+            Graph graph = Lookup.getDefault().lookup(GraphController.class).getGraphModel().getGraph();
+
+            nodesData.forEach(nodeData -> {
+                List.of(graph.getNodes().toArray())
+                        .get(nodeData.getNodeStoreId())
+                        .setAttribute(ConfigLoader.colNameTempNodeState, nodeData.getNodeTempState());
+            });
+
+            var predictNodes = Arrays.stream(graph.getNodes().toArray())
+                    .filter(node -> node.getAttribute(ConfigLoader.colNameNodeState).equals(stateName))
+                    .collect(Collectors.toList());
+            var initialNodes = Arrays.stream(graph.getNodes().toArray())
+                    .filter(node -> node.getAttribute(ConfigLoader.colNameRootState).equals(stateName))
+                    .collect(Collectors.toList());
+
+            String[][] result = new String[predictNodes.size()][4];
+
+            for (int i = 0; i < predictNodes.size(); i++) {
+                Node currentNode = predictNodes.get(i);
+//                Node Number
+                result[i][0] = String.valueOf(i + 1);
+//                Distance To Closest Initial
+                result[i][1] = String.valueOf(NodeHelper.getDistanceToClosestNode(currentNode, initialNodes, graph));
+//                Distance To Farthest Initial
+                result[i][2] = String.valueOf(NodeHelper.getDistanceToFarthestNode(currentNode, initialNodes, graph));
+//                Avg Distance To All Initials
+                result[i][3] = String.valueOf(NodeHelper.getAvgDistanceToNodes(currentNode, initialNodes, graph));
+            }
+
+            return result;
+        }
+
+        private void showSingleReport(String examinedStateAndRole) {
+            JFrame frame = new JFrame("Single Simulation Report");
+            JPanel panel = new JPanel();
+            panel.setLayout(new GridBagLayout());
+
+            GridBagConstraints gbc = new GridBagConstraints();
+            gbc.gridx = 0;
+            gbc.gridy = 0;
+            gbc.weighty = 0.0;
+
+            JLabel initialLabel = new JLabel("Initial Nodes");
+            Font labelFont = initialLabel.getFont();
+            initialLabel.setFont(new Font(labelFont.getName(), Font.BOLD, 16));
+            initialLabel.setHorizontalAlignment(SwingConstants.LEFT);
+            panel.add(initialLabel, gbc);
+
+            gbc.gridy++;
+            gbc.weighty = 1.0;
+            String[] initialColumnNames = {"Node Number", "Node Degree", "Node Betweenees", "Node Closeness"};
+            Object[][] initialData = generateInitialData(examinedStateAndRole.split(":")[1]);
+            JTable initialTable = new JTable(new DefaultTableModel(initialData, initialColumnNames));
+            JScrollPane initialScrollPane = new JScrollPane(initialTable);
+            setPreferredTableSize(initialScrollPane, initialTable);
+            panel.add(initialScrollPane, gbc);
+
+            gbc.gridy++;
+            gbc.weighty = 0;
+            JLabel predicLabel = new JLabel("Predict Nodes");
+            Font predictFont = predicLabel.getFont();
+            predicLabel.setFont(new Font(predictFont.getName(), Font.BOLD, 16));
+            predicLabel.setHorizontalAlignment(SwingConstants.LEFT);
+            panel.add(predicLabel, gbc);
+
+            gbc.gridy++;
+            gbc.weighty = 1;
+            String[] predictColumnNames = {"Node Number", "Distance To Closest Initial", "Distance To Farthest Initial", "Avg Distance To All Initial"};
+            Object[][] predictData = generatePredictDataForSingle(examinedStateAndRole.split(":")[1]);
+            JTable predictTable = new JTable(new DefaultTableModel(predictData, predictColumnNames));
+            JScrollPane predictScrollPane = new JScrollPane(predictTable);
+            setPreferredTableSize(predictScrollPane, predictTable);
+            panel.add(predictScrollPane, gbc);
 
             JScrollPane mainScrollPane = new JScrollPane(panel);
             frame.setSize(1200, 800);
@@ -130,15 +220,8 @@ public class GetSeriesReportButton extends JButton {
             scrollPane.getViewport().setPreferredSize(headerSize);
         }
 
-        private Object[][] generatePredictData(String stateName, List<NodeData> nodesData) {
+        private Object[][] generatePredictDataForSingle(String stateName) {
             Graph graph = Lookup.getDefault().lookup(GraphController.class).getGraphModel().getGraph();
-
-            nodesData.forEach(nodeData -> {
-                List.of(graph.getNodes().toArray())
-                        .get(nodeData.getNodeStroeId())
-                        .setAttribute(ConfigLoader.colNameNodeState, nodeData.getNodeCurrnetState());
-            });
-
             var predictNodes = Arrays.stream(graph.getNodes().toArray())
                     .filter(node -> node.getAttribute(ConfigLoader.colNameNodeState).equals(stateName))
                     .collect(Collectors.toList());
@@ -182,8 +265,5 @@ public class GetSeriesReportButton extends JButton {
 
             return result;
         }
-
     }
-
-
 }

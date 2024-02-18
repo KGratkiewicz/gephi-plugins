@@ -1,7 +1,12 @@
-package components.reverseSimulation.buttons;
+package components.reverseSimulation.buttons.reverseStep;
 
 import components.reverseSimulation.ReverseSimulationComponent;
 import components.simulation.Simulation;
+import components.simulationLogic.SimulationComponent;
+import configLoader.ConfigLoader;
+import org.gephi.graph.api.Graph;
+import org.gephi.graph.api.GraphController;
+import org.openide.util.Lookup;
 import simulationModel.node.NodeStateDecorator;
 import it.unimi.dsi.fastutil.Pair;
 import lombok.Getter;
@@ -31,19 +36,35 @@ public class StartSimulationButton extends JButton {
     private class StartSimulationReverseSeriesListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
-            CustomInputDialog dialog = new CustomInputDialog(null);
-            dialog.setVisible(true);
-            dialog.dispose();
-            if (dialog.isSuccessful()) {
-                runSimulation();
-            }
+//            TODO changed stop codition to use step
+//            CustomInputDialog dialog = new CustomInputDialog(null);
+//            dialog.setVisible(true);
+//            dialog.dispose();
+//            if (dialog.isSuccessful()) {
+            var step = SimulationComponent.getInstance().getCurrentSimulation().getStep();
+                runSimulation(step);
+//            }
         }
     }
 
-    private void runSimulation() {
-        while(!stopCondition()) {
+    private void runSimulation(Integer step) {
+        while(simulation.getStep() < step - 1) {
             simulation.Step();
         }
+
+        Graph graph = Lookup.getDefault().lookup(GraphController.class).getGraphModel().getGraph();
+        var table = graph.getModel().getNodeTable();
+        if(table.getColumn(ConfigLoader.colNameTempNodeState) == null)
+            table.addColumn(ConfigLoader.colNameTempNodeState, String.class);
+
+        List.of(simulation.getGraph().getNodes().toArray()).forEach(e ->
+                e.setAttribute(ConfigLoader.colNameTempNodeState, e.getAttribute(ConfigLoader.colNameNodeState).toString()));
+        simulation.Step();
+        List.of(simulation.getGraph().getNodes().toArray()).forEach(e -> {
+            if (!e.getAttribute(ConfigLoader.colNameNodeState).equals(e.getAttribute(ConfigLoader.colNameTempNodeState))) {
+                e.setAttribute(ConfigLoader.colNameTempNodeState, "");
+            }
+        });
 
         reverseSimulationComponent.initComponents();
         reverseSimulationComponent.revalidate();
