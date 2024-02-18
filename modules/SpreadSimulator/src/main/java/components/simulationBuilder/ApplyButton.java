@@ -54,7 +54,8 @@ public class ApplyButton extends JButton {
                     var names = rule.split("_");
                     var rulesList =component.advancedRules.get(rule);
                     for(var rul : rulesList){
-                        ExecuteRule(rul, names[0], names[1]);
+                        var nodeRoleDecorator = nodeRoles.stream().filter(role -> role.getNodeRole().getName().toString().equals(names[0])).collect(Collectors.toList()).get(0);
+                        ExecuteRule(rul, nodeRoleDecorator, names[1]);
                     }
                 }
             }
@@ -62,7 +63,7 @@ public class ApplyButton extends JButton {
                 JOptionPane.showMessageDialog(null, "Setup graph model first");
             }
         }
-        private void ExecuteRule(AdvancedRule rule, String roleName, String stateName){
+        private void ExecuteRule(AdvancedRule rule, NodeRoleDecorator nodeRoleDecorator, String stateName){
             var graphModel = Lookup.getDefault().lookup(GraphController.class).getGraphModel();
             var graph = graphModel.getGraph();
             String centralityMethod = rule.rule;
@@ -70,137 +71,151 @@ public class ApplyButton extends JButton {
             boolean ascending = rule.ascending;
             switch (centralityMethod) {
                 case "Random":
-                    RandomNStrategy(graph, numOfNodes, ascending, roleName, stateName);
+                    RandomNStrategy(graph, numOfNodes, ascending, nodeRoleDecorator, stateName);
                     break;
                 case "Random-Random":
-                    RandomRandomStrategy(graph, numOfNodes, ascending, roleName, stateName);
+                    RandomRandomStrategy(graph, numOfNodes, ascending, nodeRoleDecorator, stateName);
                     break;
+                case "Equal Degree":
+                    throw new NotImplementedException();
                 case "Closeness":
-                    GraphDistanceClosenessStatisticOption(graph, numOfNodes, ascending, roleName, stateName);
+                    GraphDistanceClosenessStatisticOption(graph, numOfNodes, ascending, nodeRoleDecorator, stateName);
                     break;
                 case "Harmonic Closeness":
-                    GraphDistanceHarmonicClosenessStatisticOption(graph, numOfNodes, ascending, roleName, stateName);
+                    GraphDistanceHarmonicClosenessStatisticOption(graph, numOfNodes, ascending, nodeRoleDecorator, stateName);
                     break;
                 case "Betwenness":
-                    GraphDistanceBetweenessStatisticOption(graph, numOfNodes, ascending, roleName, stateName);
+                    GraphDistanceBetweenessStatisticOption(graph, numOfNodes, ascending, nodeRoleDecorator, stateName);
                     break;
                 case "Degree":
-                    DegreeStatisticOption(graph, numOfNodes, ascending, roleName, stateName);
+                    DegreeStatisticOption(graph, numOfNodes, ascending, nodeRoleDecorator, stateName);
                     break;
                 case "Eigenvector":
-                    EigenvectorStatisticOption(graph, numOfNodes, ascending, roleName, stateName);
+                    EigenvectorStatisticOption(graph, numOfNodes, ascending, nodeRoleDecorator, stateName);
                     break;
                 case "HITS - authority":
-                    HITSAuthorityStatisticOption(graph, numOfNodes, ascending, roleName, stateName);
+                    HITSAuthorityStatisticOption(graph, numOfNodes, ascending, nodeRoleDecorator, stateName);
                 case "HITS - hub":
-                    HITSHubStatisticOption(graph, numOfNodes, ascending, roleName, stateName);
+                    HITSHubStatisticOption(graph, numOfNodes, ascending, nodeRoleDecorator, stateName);
                     break;
                 case "Eccentricity":
-                    GraphDistanceEccentricityStatisticOption(graph, numOfNodes, ascending, roleName, stateName);
+                    GraphDistanceEccentricityStatisticOption(graph, numOfNodes, ascending, nodeRoleDecorator, stateName);
                     break;
                 case "Modularity":
-                    GraphDistanceModularityStatisticOption(graph, numOfNodes, ascending, roleName, stateName);
+                    GraphDistanceModularityStatisticOption(graph, numOfNodes, ascending, nodeRoleDecorator, stateName);
                     break;
                 default:
                     throw new NotImplementedException();
             }
         }
 
-        private void RandomNStrategy(Graph graph, Integer numOfNodes, Boolean descending, String nodeRoleName, String nodeStateName) {
-            Node[] nodes = graph.getNodes().toArray();
+        private void RandomNStrategy(Graph graph, Integer numOfNodes, Boolean descending, NodeRoleDecorator nodeRoleName, String nodeStateName) {
+            var nodes = Arrays.stream(graph.getNodes().toArray()).collect(Collectors.toList());
+            nodes = nodes.stream().filter(node -> node.getAttribute(ConfigLoader.colNameNodeState.toString()).toString() == nodeRoleName.getDefaultStateName().toString()).collect(Collectors.toList());
             var rnd = new Random();
             for (int i = 0; i < numOfNodes; i++) {
-                var index = rnd.nextInt(nodes.length);
-                var selectedNode = nodes[index];
-                selectedNode.setAttribute(ConfigLoader.colNameNodeRole, nodeRoleName);
+                var index = rnd.nextInt((int) nodes.stream().count());
+                var selectedNode = nodes.get(index);
+                selectedNode.setAttribute(ConfigLoader.colNameNodeRole, nodeRoleName.getNodeRole().getName().toString());
                 selectedNode.setAttribute(ConfigLoader.colNameNodeState, nodeStateName);
             }
         }
 
-        private void RandomRandomStrategy(Graph graph, Integer numOfNodes, Boolean descending, String nodeRoleName, String nodeStateName) {
-            Node[] nodes = graph.getNodes().toArray();
+        private void RandomRandomStrategy(Graph graph, Integer numOfNodes, Boolean descending, NodeRoleDecorator nodeRoleName, String nodeStateName) {
+            var nodes = Arrays.stream(graph.getNodes().toArray()).collect(Collectors.toList());
+            nodes = nodes.stream().filter(node -> node.getAttribute(ConfigLoader.colNameNodeState.toString()).toString() == nodeRoleName.getDefaultStateName().toString()).collect(Collectors.toList());
             var rnd = new Random();
             for (int i = 0; i < numOfNodes; i++) {
-                var index = rnd.nextInt(nodes.length);
-                var selectedNode = nodes[index];
+                var index = rnd.nextInt((int) nodes.stream().count());
+                var selectedNode = nodes.get(index);
                 var neighbours = graph.getNeighbors(selectedNode).toArray();
                 index = rnd.nextInt(neighbours.length);
                 selectedNode = neighbours[index];
-                selectedNode.setAttribute(ConfigLoader.colNameNodeRole, nodeRoleName);
+                selectedNode.setAttribute(ConfigLoader.colNameNodeRole, nodeRoleName.getNodeRole().getName().toString());
                 selectedNode.setAttribute(ConfigLoader.colNameNodeState, nodeStateName);
             }
         }
 
-        private void GraphDistanceClosenessStatisticOption(Graph graph, Integer numOfNodes, Boolean descending, String nodeRoleName, String nodeStateName) {
+        private void GraphDistanceClosenessStatisticOption(Graph graph, Integer numOfNodes, Boolean descending, NodeRoleDecorator nodeRoleName, String nodeStateName) {
             var eigenvector = new GraphDistance();
             eigenvector.setDirected(false);
             eigenvector.execute(graph);
             StatisticsOptions(graph, numOfNodes, descending, "closnesscentrality", nodeRoleName, nodeStateName);
         }
 
-        private void GraphDistanceHarmonicClosenessStatisticOption(Graph graph, Integer numOfNodes, Boolean descending, String nodeRoleName, String nodeStateName) {
+        private void GraphDistanceHarmonicClosenessStatisticOption(Graph graph, Integer numOfNodes, Boolean descending, NodeRoleDecorator nodeRoleName, String nodeStateName) {
             var eigenvector = new GraphDistance();
             eigenvector.setDirected(false);
             eigenvector.execute(graph);
             StatisticsOptions(graph, numOfNodes, descending, "harmonicclosnesscentrality", nodeRoleName, nodeStateName);
         }
 
-        private void GraphDistanceBetweenessStatisticOption(Graph graph, Integer numOfNodes, Boolean descending, String nodeRoleName, String nodeStateName) {
+        private void GraphDistanceBetweenessStatisticOption(Graph graph, Integer numOfNodes, Boolean descending, NodeRoleDecorator nodeRoleName, String nodeStateName) {
             var eigenvector = new GraphDistance();
             eigenvector.setDirected(false);
             eigenvector.execute(graph);
             StatisticsOptions(graph, numOfNodes, descending, "betweenesscentrality", nodeRoleName, nodeStateName);
         }
 
-        private void DegreeStatisticOption(Graph graph, Integer numOfNodes, Boolean descending, String nodeRoleName, String nodeStateName) {
+        private void DegreeStatisticOption(Graph graph, Integer numOfNodes, Boolean descending, NodeRoleDecorator nodeRoleName, String nodeStateName) {
             var degree = new Degree();
             degree.execute(graph);
             StatisticsOptions(graph, numOfNodes, descending, "Degree", nodeRoleName, nodeStateName);
         }
 
-        private void EigenvectorStatisticOption(Graph graph, Integer numOfNodes, Boolean descending, String nodeRoleName, String nodeStateName) {
+        private void EigenvectorStatisticOption(Graph graph, Integer numOfNodes, Boolean descending, NodeRoleDecorator nodeRoleName, String nodeStateName) {
             var eigenvector = new EigenvectorCentrality();
             eigenvector.setDirected(false);
             eigenvector.execute(graph);
             StatisticsOptions(graph, numOfNodes, descending, "eigencentrality", nodeRoleName, nodeStateName);
         }
 
-        private void HITSAuthorityStatisticOption(Graph graph, Integer numOfNodes, Boolean descending, String nodeRoleName, String nodeStateName) {
+        private void HITSAuthorityStatisticOption(Graph graph, Integer numOfNodes, Boolean descending, NodeRoleDecorator nodeRoleName, String nodeStateName) {
             var hits = new Hits();
             hits.execute(graph);
             StatisticsOptions(graph, numOfNodes, descending, "Authority", nodeRoleName, nodeStateName);
         }
 
-        private void HITSHubStatisticOption(Graph graph, Integer numOfNodes, Boolean descending, String nodeRoleName, String nodeStateName) {
+        private void HITSHubStatisticOption(Graph graph, Integer numOfNodes, Boolean descending, NodeRoleDecorator nodeRoleName, String nodeStateName) {
             var hits = new Hits();
             hits.execute(graph);
             StatisticsOptions(graph, numOfNodes, descending, "Hub", nodeRoleName, nodeStateName);
         }
 
-        private void GraphDistanceEccentricityStatisticOption(Graph graph, Integer numOfNodes, Boolean descending, String nodeRoleName, String nodeStateName) {
+        private void GraphDistanceEccentricityStatisticOption(Graph graph, Integer numOfNodes, Boolean descending, NodeRoleDecorator nodeRoleName, String nodeStateName) {
             var eigenvector = new GraphDistance();
             eigenvector.setDirected(false);
             eigenvector.execute(graph);
             StatisticsOptions(graph, numOfNodes, descending, "eccentricity", nodeRoleName, nodeStateName);
         }
 
-        private void GraphDistanceModularityStatisticOption(Graph graph, Integer numOfNodes, Boolean descending, String nodeRoleName, String nodeStateName) {
+        private void GraphDistanceModularityStatisticOption(Graph graph, Integer numOfNodes, Boolean descending, NodeRoleDecorator nodeRoleName, String nodeStateName) {
             var eigenvector = new Modularity();
             eigenvector.execute(graph);
             StatisticsOptions(graph, numOfNodes, descending, "modularity_class", nodeRoleName, nodeStateName);
         }
 
 
-        private void StatisticsOptions(Graph graph, Integer numOfNodes, Boolean descending, String attributeName, String nodeRoleName, String nodeStateName) {
+        private void StatisticsOptions(Graph graph, Integer numOfNodes, Boolean descending, String attributeName, NodeRoleDecorator nodeRoleName, String nodeStateName) {
             var nodes = Arrays.stream(graph.getNodes().toArray()).collect(Collectors.toList());
+            nodes = nodes.stream().filter(node -> node.getAttribute(ConfigLoader.colNameNodeState.toString()).toString() == nodeRoleName.getDefaultStateName().toString()).collect(Collectors.toList());
+
             nodes.sort(Comparator.comparingDouble(node -> Double.parseDouble(node.getAttribute(attributeName).toString())));
             if (descending) {
                 Collections.reverse(nodes);
             }
+
             for (int i = 0; i < numOfNodes; i++) {
-                var chosenOne = nodes.get(i);
-                chosenOne.setAttribute(ConfigLoader.colNameNodeRole, nodeRoleName);
-                chosenOne.setAttribute(ConfigLoader.colNameNodeState, nodeStateName);
+                var attributeValue = Double.parseDouble(nodes.get(i).getAttribute(attributeName).toString());
+                var equalAttributesNodes = nodes.stream().filter(node -> Double.parseDouble(node.getAttribute(attributeName).toString()) == attributeValue).collect(Collectors.toList());
+                Collections.shuffle(equalAttributesNodes);
+
+                for(int j = 0; equalAttributesNodes.size() > j && i < numOfNodes; j++, i++){
+                    var chosenOne = equalAttributesNodes.get(j);
+                    chosenOne.setAttribute(ConfigLoader.colNameNodeRole, nodeRoleName.getNodeRole().getName().toString());
+                    chosenOne.setAttribute(ConfigLoader.colNameNodeState, nodeStateName);
+                }
+                i--;
             }
         }
     }

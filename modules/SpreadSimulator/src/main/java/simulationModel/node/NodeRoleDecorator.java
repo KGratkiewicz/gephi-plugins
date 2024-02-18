@@ -15,6 +15,7 @@ public class NodeRoleDecorator {
     private Double coverage;
     private Integer minCoverage;
     private NodeRole nodeRole;
+    private String defaultStateName;
     private List<NodeStateDecorator> nodeStates;
 
     public NodeRoleDecorator(Double coverage, Integer minCoverage, NodeRole nodeRole, List<NodeStateDecorator> nodeStates) {
