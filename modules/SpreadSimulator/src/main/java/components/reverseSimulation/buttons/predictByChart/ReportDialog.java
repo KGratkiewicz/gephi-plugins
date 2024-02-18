@@ -1,5 +1,6 @@
 package components.reverseSimulation.buttons.predictByChart;
 
+import components.reverseSimulation.buttons.predictByChart.model.AutomaticAdvancedReport;
 import components.simulationLogic.report.SimulationStepReport;
 import configLoader.ConfigLoader;
 import it.unimi.dsi.fastutil.Pair;
@@ -28,24 +29,25 @@ public class ReportDialog {
 
     List<SimulationStepReport> actualSimulationReport;
     List<List<SimulationStepReport>> simulatedListOfSimulationReports;
-    List<Pair<Integer, Double>> diffList;
+    List<AutomaticAdvancedReport> simulatedAdvancedReports;
     int intervalStart;
     int intervalEnd;
     String stateAndRoleName;
 
-    public ReportDialog(Pair<List<SimulationStepReport>, List<List<SimulationStepReport>>> pair, int predictionStartInterval, int predictionEndInterval, String stateAndRoleName, List<Pair<Integer, Double>> diffList) {
+    public ReportDialog(int predictionStartInterval, int predictionEndInterval, String stateAndRoleName, Pair<List<SimulationStepReport>, List<AutomaticAdvancedReport>> pair) {
         this.actualSimulationReport = pair.first();
-        this.simulatedListOfSimulationReports = pair.second();
+        this.simulatedListOfSimulationReports = null;
+        this.simulatedAdvancedReports = pair.second();
         this.intervalStart = predictionStartInterval;
         this.intervalEnd = predictionEndInterval;
         this.stateAndRoleName = stateAndRoleName;
-        this.diffList = diffList;
         initComponents();
     }
 
     public ReportDialog(Pair<List<SimulationStepReport>, List<List<SimulationStepReport>>> pair, int predictionStartInterval, int predictionEndInterval, String stateAndRoleName) {
         this.actualSimulationReport = pair.first();
         this.simulatedListOfSimulationReports = pair.second();
+        this.simulatedAdvancedReports = null;
         this.intervalStart = predictionStartInterval;
         this.intervalEnd = predictionEndInterval;
         this.stateAndRoleName = stateAndRoleName;
@@ -67,39 +69,11 @@ public class ReportDialog {
 
         mainPanel.add(Box.createVerticalStrut(100));
 
-        if (diffList != null) {
-            var bestSolutionDiff = diffList.get(diffList.size() - 2);
-            mainPanel.add(getLabelFromStringAndSize(
-                    22,
-                    true,
-                    "Found best solution for strategy with: " + bestSolutionDiff.first() + " nodes" + " and difference: " + String.format("%.2f", bestSolutionDiff.second())));
-
-            mainPanel.add(getLabelFromStringAndSize(
-                    22,
-                    true,
-                    "Difference for each iteration:"));
-
-            diffList.remove(diffList.get(diffList.size() - 2));
-
-            diffList.forEach(e ->
-                    mainPanel.add(getLabelFromStringAndSize(
-                            16,
-                            true,
-                            "Number of initial nodes: " + e.first() + " difference: " + String.format("%.2f", e.second())))
-            );
+        if (simulatedAdvancedReports != null) {
+            generateForAutomatic(mainPanel);
+        } else if (simulatedListOfSimulationReports != null) {
+            generateForManual(mainPanel);
         }
-
-        mainPanel.add(getLabelFromStringAndSize(
-                22,
-                true,
-                "Predicted avg value compared to actual"));
-        getChartPanelComparingFromAvg(actualSimulationReport, simulatedListOfSimulationReports, intervalStart, intervalEnd, stateAndRoleName).forEach(mainPanel::add);
-
-        mainPanel.add(getLabelFromStringAndSize(
-                22,
-                true,
-                "Predicted best simulation compared to actual"));
-        getChartPanelComparingFromBestSimulation(actualSimulationReport, simulatedListOfSimulationReports, intervalStart, intervalEnd, stateAndRoleName).forEach(mainPanel::add);
 
         JButton showOnGraphButton = new JButton("Show On Grpah");
         showOnGraphButton.addActionListener(e -> showOnGraph(mainFrame));
@@ -111,6 +85,63 @@ public class ReportDialog {
         mainFrame.pack();
         mainFrame.setLocationRelativeTo(mainFrame);
         mainFrame.setVisible(true);
+    }
+
+    private void generateForAutomatic(JPanel mainPanel) {
+        simulatedAdvancedReports.forEach(singelAdvancedReport -> {
+            mainPanel.add(getLabelFromStringAndSize(
+                    22,
+                    true,
+                    "Result for strategy: " + singelAdvancedReport.getStrategyName() + " " + singelAdvancedReport.isAscending()));
+
+            var bestSolutionDiff = singelAdvancedReport.getReportList().get(singelAdvancedReport.getReportList().size() - 2);
+            mainPanel.add(getLabelFromStringAndSize(
+                    20,
+                    true,
+                    "Found best solution for strategy with: " + bestSolutionDiff.first() + " nodes" + " and difference: " + String.format("%.2f", bestSolutionDiff.second())));
+
+            mainPanel.add(getLabelFromStringAndSize(
+                    20,
+                    true,
+                    "Difference for each iteration:"));
+
+            singelAdvancedReport.getReportList().remove(singelAdvancedReport.getReportList().get(singelAdvancedReport.getReportList().size() - 2));
+
+            singelAdvancedReport.getReportList().forEach(e ->
+                    mainPanel.add(getLabelFromStringAndSize(
+                            14,
+                            true,
+                            "Number of initial nodes: " + e.first() + " difference: " + String.format("%.2f", e.second())))
+            );
+
+            mainPanel.add(getLabelFromStringAndSize(
+                    22,
+                    true,
+                    "Predicted avg value compared to actual"));
+            getChartPanelComparingFromAvg(actualSimulationReport, singelAdvancedReport.getSimulationStepReport(), intervalStart, intervalEnd, stateAndRoleName).forEach(mainPanel::add);
+
+            mainPanel.add(getLabelFromStringAndSize(
+                    22,
+                    true,
+                    "Predicted best simulation compared to actual"));
+            getChartPanelComparingFromBestSimulation(actualSimulationReport, singelAdvancedReport.getSimulationStepReport(), intervalStart, intervalEnd, stateAndRoleName).forEach(mainPanel::add);
+
+            mainPanel.add(Box.createVerticalStrut(25));
+        });
+    }
+
+    private void generateForManual(JPanel mainPanel) {
+        mainPanel.add(getLabelFromStringAndSize(
+                22,
+                true,
+                "Predicted avg value compared to actual"));
+        getChartPanelComparingFromAvg(actualSimulationReport, simulatedListOfSimulationReports, intervalStart, intervalEnd, stateAndRoleName).forEach(mainPanel::add);
+
+        mainPanel.add(getLabelFromStringAndSize(
+                22,
+                true,
+                "Predicted best simulation compared to actual"));
+        getChartPanelComparingFromBestSimulation(actualSimulationReport, simulatedListOfSimulationReports, intervalStart, intervalEnd, stateAndRoleName).forEach(mainPanel::add);
     }
 
     private void showOnGraph(JFrame mainFrame) {

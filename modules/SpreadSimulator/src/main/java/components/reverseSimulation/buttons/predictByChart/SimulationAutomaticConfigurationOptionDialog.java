@@ -1,6 +1,7 @@
 package components.reverseSimulation.buttons.predictByChart;
 
 import components.reverseSimulation.ReverseSimulationComponent;
+import components.reverseSimulation.buttons.predictByChart.model.AutomaticAdvancedReport;
 import components.simulation.Simulation;
 import components.simulation.SimulationAll;
 import components.simulation.SimulationRelativeEdges;
@@ -45,7 +46,7 @@ public class SimulationAutomaticConfigurationOptionDialog extends JDialog {
 
     private ReverseSimulationComponent reverseSimulationComponent;
     private String stateAndRoleName;
-    private String strategy;
+    private List<AdvancedRule> strategyList;
     private List<Pair<Integer, Double>> diffList = new ArrayList<>();
     private int currentNumberOfNodes;
     private List<Pair<String, JTextField>> newNodesCoverage = new ArrayList<>();
@@ -54,10 +55,10 @@ public class SimulationAutomaticConfigurationOptionDialog extends JDialog {
     private JTextField predictionEndInput;
     public SimulationAutomaticConfigurationOptionDialog(ReverseSimulationComponent reverseSimulationComponent,
                                                         String stateAndRoleName,
-                                                        String strategy) {
+                                                        List<AdvancedRule> strategyList) {
         this.reverseSimulationComponent = reverseSimulationComponent;
         this.stateAndRoleName = stateAndRoleName;
-        this.strategy = strategy;
+        this.strategyList = strategyList;
         initComponents();
     }
 
@@ -179,8 +180,8 @@ public class SimulationAutomaticConfigurationOptionDialog extends JDialog {
                 predictionEndInterval = Integer.parseInt(predictionEndInput.getText());
             }
             var conductSimulations = Integer.parseInt(numberOfSimulationsInput.getText());
-            var actualSimulationAndBestSimulationReport = prepareAndStartSimulation(conductSimulations, predictionStartInterval, predictionEndInterval, stateAndRoleName);
-            new ReportDialog(actualSimulationAndBestSimulationReport, predictionStartInterval, predictionEndInterval, stateAndRoleName, diffList);
+            Pair<List<SimulationStepReport>, List<AutomaticAdvancedReport>> actualSimulationAndBestSimulationReport = prepareAndStartSimulation(conductSimulations, predictionStartInterval, predictionEndInterval, strategyList);
+            new ReportDialog(predictionStartInterval, predictionEndInterval, stateAndRoleName, actualSimulationAndBestSimulationReport);
             setVisible(false);
             dispose();
         } catch (NumberFormatException ex) {
@@ -188,16 +189,14 @@ public class SimulationAutomaticConfigurationOptionDialog extends JDialog {
         }
     }
 
-    private Pair<List<SimulationStepReport>, List<List<SimulationStepReport>>> prepareAndStartSimulation(
+    private Pair<List<SimulationStepReport>, List<AutomaticAdvancedReport>> prepareAndStartSimulation(
             int conductSimulations,
             int predictionStartInterval,
             int predictionEndInterval,
-            String stateAndRoleName) {
+            List<AdvancedRule> strategyList) {
         SimulationComponent simulationComponent = SimulationComponent.getInstance();
         var actualReport = simulationComponent.getCurrentSimulation().getReport();
         var steps = actualReport.size();
-        var bestSolutionFound = false;
-        List<List<SimulationStepReport>> simulationReportList;
 
         var nodeRoles = simulationComponent.getSimulationModel().getNodeRoles();
         newNodesCoverage.forEach(pair -> nodeRoles.stream()
@@ -206,23 +205,30 @@ public class SimulationAutomaticConfigurationOptionDialog extends JDialog {
                 .filter(nodeState -> nodeState.getNodeState().getName().equals(pair.first().split(":")[1]))
                 .forEach(nodeState -> nodeState.setCoverage(Double.parseDouble(pair.second().getText()))));
 
-        currentNumberOfNodes = 1;
-        simulationReportList = startSimulation(conductSimulations, steps, this.stateAndRoleName, simulationComponent);
-        while (!bestSolutionFound) {
-            currentNumberOfNodes++;
-            var nextSimulation = startSimulation(conductSimulations, steps, this.stateAndRoleName, simulationComponent);
-            var pairOfDiff = compareSimulation(actualReport, simulationReportList, nextSimulation, predictionStartInterval, predictionEndInterval, this.stateAndRoleName);
-            diffList.add(Pair.of(currentNumberOfNodes - 1, pairOfDiff.first()));
-            if (pairOfDiff.first() <= pairOfDiff.second()) {
-                bestSolutionFound = true;
-                diffList.add(Pair.of(currentNumberOfNodes, pairOfDiff.second()));
-            } else {
-                simulationReportList = nextSimulation;
+        List<AutomaticAdvancedReport> advancedReportList = new ArrayList<>();
+        strategyList.forEach(strategy -> {
+            List<List<SimulationStepReport>> simulationReportList;
+            boolean bestSolutionFound = false;
+            currentNumberOfNodes = 1;
+            diffList = new ArrayList<>();
+
+            simulationReportList = startSimulation(conductSimulations, steps, this.stateAndRoleName, simulationComponent, strategy);
+            while (!bestSolutionFound) {
+                currentNumberOfNodes++;
+                var nextSimulation = startSimulation(conductSimulations, steps, this.stateAndRoleName, simulationComponent, strategy);
+                var pairOfDiff = compareSimulation(actualReport, simulationReportList, nextSimulation, predictionStartInterval, predictionEndInterval, this.stateAndRoleName);
+                diffList.add(Pair.of(currentNumberOfNodes - 1, pairOfDiff.first()));
+                if (pairOfDiff.first() <= pairOfDiff.second()) {
+                    bestSolutionFound = true;
+                    diffList.add(Pair.of(currentNumberOfNodes, pairOfDiff.second()));
+                } else {
+                    simulationReportList = nextSimulation;
+                }
             }
+            advancedReportList.add(new AutomaticAdvancedReport(strategy.rule, strategy.ascending, diffList, simulationReportList));
+        });
 
-        }
-
-        return Pair.of(actualReport, simulationReportList);
+        return Pair.of(actualReport, advancedReportList);
     }
 
     private Pair<Double, Double> compareSimulation(
@@ -288,10 +294,10 @@ public class SimulationAutomaticConfigurationOptionDialog extends JDialog {
         return Pair.of(firstReportSum.get(), secondReportSum.get());
     }
 
-    private List<List<SimulationStepReport>> startSimulation(int conductSimulations, int steps, String stateAndRoleName, SimulationComponent simulationComponent) {
+    private List<List<SimulationStepReport>> startSimulation(int conductSimulations, int steps, String stateAndRoleName, SimulationComponent simulationComponent, AdvancedRule strategy) {
         List<Simulation> simulationList = new ArrayList<>();
         for (int i = 0; i < conductSimulations; i++) {
-            applyRules(simulationComponent, stateAndRoleName);
+            applyRules(simulationComponent, stateAndRoleName, strategy);
             createNewSimulation(simulationComponent);
             for (int l = 0; l < steps; l++) {
                 simulationComponent.getCurrentSimulation().Step();
@@ -323,7 +329,7 @@ public class SimulationAutomaticConfigurationOptionDialog extends JDialog {
         }
     }
 
-    private void applyRules(SimulationComponent simulationComponent, String stateAndRoleName) {
+    private void applyRules(SimulationComponent simulationComponent, String stateAndRoleName, AdvancedRule strategy) {
         try {
             Graph graph = Lookup.getDefault().lookup(GraphController.class).getGraphModel().getGraph();
             var nodes = List.of(graph.getNodes().toArray());
@@ -338,8 +344,7 @@ public class SimulationAutomaticConfigurationOptionDialog extends JDialog {
             ApplySimulationHelper.Apply(graph, simulationComponent.getSimulationModel());
 
             var nodeStateAndNameSplited = stateAndRoleName.split(":");
-//            TODO TW booleana z poprzedniego dialogu
-            ExecuteRule(new AdvancedRule(strategy, currentNumberOfNodes, false), nodeStateAndNameSplited[0], nodeStateAndNameSplited[1]);
+            ExecuteRule(new AdvancedRule(strategy.rule, currentNumberOfNodes, strategy.ascending), nodeStateAndNameSplited[0], nodeStateAndNameSplited[1]);
             nodes = List.of(graph.getNodes().toArray());
             nodes.forEach(node ->
                     node.setAttribute(ConfigLoader.colNameInitialNodeState, node.getAttribute(ConfigLoader.colNameNodeState))
