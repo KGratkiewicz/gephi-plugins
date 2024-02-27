@@ -6,7 +6,7 @@ import components.reverseSimulation.buttons.reverseStep.ChangeModelButton;
 import components.reverseSimulation.buttons.reverseStep.SimulationSeriesButton;
 import components.reverseSimulation.buttons.reverseStep.StartSimulationButton;
 import components.reverseSimulation.buttons.reverseStep.StepButton;
-import components.reverseSimulation.buttons.reverseStep.UseReverseSeriesSimulationButton;
+import components.reverseSimulation.buttons.reverseStep.PredictSimulationByReverseStepButton;
 import components.reverseSimulation.buttons.reverseStep.report.ReportButton;
 import components.reverseSimulation.buttons.reverseStep.visibility.VisibilityOptionsButton;
 import components.reverseSimulation.model.NodeData;
@@ -51,14 +51,13 @@ public class ReverseSimulationComponent extends TopComponent {
     private String modelName;
     private Graph graph;
     private Simulation currentSimulation;
-//    TODO TW cofnąć się jeden krok jeżeli condition
-    private Simulation lastStepSimulation;
+    private Simulation previousStepSimulation;
     private List<Simulation> simulationList;
     private List<List<NodeData>> simulationStatesList;
     private Integer simulationSeries;
     private SimulationModel simulationModel;
     private List<NodeRoleDecorator> nodeRoles;
-    private int reverseSimulationState = 0;
+    private int state = 0;
 
     public ReverseSimulationComponent() {
         initComponents();
@@ -70,7 +69,7 @@ public class ReverseSimulationComponent extends TopComponent {
         this.removeAll();
         setLayout(new FlowLayout());
         Label simulationName = new Label();
-        switch (reverseSimulationState) {
+        switch (state) {
             case 1:
                 simulationName.setText("Reverse Series Simulation");
                 break;
@@ -86,12 +85,12 @@ public class ReverseSimulationComponent extends TopComponent {
         JButton initButton = new JButton("Init");
         initButton.addActionListener(this::initButtonActionPerformed);
         add(initButton);
-        switch (reverseSimulationState) {
+        switch (state) {
             case 0:
                 add(simulationName);
                 if (simulationSeries != null) {
                     add(new PredictSimulationByChartButton(this));
-                    add(new UseReverseSeriesSimulationButton(this));
+                    add(new PredictSimulationByReverseStepButton(this));
                 }
                 break;
             case 1:
@@ -127,7 +126,7 @@ public class ReverseSimulationComponent extends TopComponent {
                 break;
             case 2:
                 add(simulationName);
-                add(new UseReverseSeriesSimulationButton(this));
+                add(new PredictSimulationByReverseStepButton(this));
                 add(new StartPredictionButton(this));
                 break;
             default:
@@ -203,23 +202,23 @@ public class ReverseSimulationComponent extends TopComponent {
             });
             switch (simulationModel.getInteraction().getInteractionType()){
                 case All:
-                    this.lastStepSimulation = currentSimulation;
+                    this.previousStepSimulation = currentSimulation;
                     this.currentSimulation = new SimulationAll(graph, simulationModel);
                     break;
                 case RelativeEdges:
-                    this.lastStepSimulation = currentSimulation;
+                    this.previousStepSimulation = currentSimulation;
                     this.currentSimulation = new SimulationRelativeEdges(graph, simulationModel);
                     break;
                 case RelativeFreeEdges:
-                    this.lastStepSimulation = currentSimulation;
+                    this.previousStepSimulation = currentSimulation;
                     this.currentSimulation = new SimulationRelativeFreeEdges(graph, simulationModel);
                     break;
                 case RelativeNodes:
-                    this.lastStepSimulation = currentSimulation;
+                    this.previousStepSimulation = currentSimulation;
                     this.currentSimulation = new SimulationRelativeNodes(graph, simulationModel);
                     break;
                 case RelativeFreeNodes:
-                    this.lastStepSimulation = currentSimulation;
+                    this.previousStepSimulation = currentSimulation;
                     this.currentSimulation = new SimulationRelativeFreeNodes(graph, simulationModel);
                     break;
                 default:
