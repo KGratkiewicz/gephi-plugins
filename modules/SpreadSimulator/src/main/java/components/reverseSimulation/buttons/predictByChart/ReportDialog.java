@@ -1,6 +1,7 @@
 package components.reverseSimulation.buttons.predictByChart;
 
 import components.reverseSimulation.buttons.predictByChart.model.AutomaticAdvancedReport;
+import components.simulationLogic.SimulationComponent;
 import components.simulationLogic.report.SimulationStepReport;
 import configLoader.ConfigLoader;
 import it.unimi.dsi.fastutil.Pair;
@@ -17,7 +18,10 @@ import org.openide.util.Lookup;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -88,13 +92,13 @@ public class ReportDialog {
     }
 
     private void generateForAutomatic(JPanel mainPanel) {
-        simulatedAdvancedReports.forEach(singelAdvancedReport -> {
+        simulatedAdvancedReports.forEach(singleAdvancedReport -> {
             mainPanel.add(getLabelFromStringAndSize(
                     22,
                     true,
-                    "Result for strategy: " + singelAdvancedReport.getStrategyName() + " " + singelAdvancedReport.isAscending()));
+                    "Result for strategy: " + singleAdvancedReport.getStrategyName() + " " + singleAdvancedReport.isAscending()));
 
-            var bestSolutionDiff = singelAdvancedReport.getReportList().get(singelAdvancedReport.getReportList().size() - 2);
+            var bestSolutionDiff = singleAdvancedReport.getReportList().get(singleAdvancedReport.getReportList().size() - 2);
             mainPanel.add(getLabelFromStringAndSize(
                     20,
                     true,
@@ -105,9 +109,9 @@ public class ReportDialog {
                     true,
                     "Difference for each iteration:"));
 
-            singelAdvancedReport.getReportList().remove(singelAdvancedReport.getReportList().get(singelAdvancedReport.getReportList().size() - 2));
+            singleAdvancedReport.getReportList().remove(singleAdvancedReport.getReportList().get(singleAdvancedReport.getReportList().size() - 2));
 
-            singelAdvancedReport.getReportList().forEach(e ->
+            singleAdvancedReport.getReportList().forEach(e ->
                     mainPanel.add(getLabelFromStringAndSize(
                             14,
                             true,
@@ -118,16 +122,39 @@ public class ReportDialog {
                     22,
                     true,
                     "Predicted avg value compared to actual"));
-            getChartPanelComparingFromAvg(actualSimulationReport, singelAdvancedReport.getSimulationStepReport(), intervalStart, intervalEnd, stateAndRoleName).forEach(mainPanel::add);
+            getChartPanelComparingFromAvg(actualSimulationReport, singleAdvancedReport.getSimulationStepReport(), intervalStart, intervalEnd, stateAndRoleName).forEach(mainPanel::add);
 
             mainPanel.add(getLabelFromStringAndSize(
                     22,
                     true,
                     "Predicted best simulation compared to actual"));
-            getChartPanelComparingFromBestSimulation(actualSimulationReport, singelAdvancedReport.getSimulationStepReport(), intervalStart, intervalEnd, stateAndRoleName).forEach(mainPanel::add);
+            getChartPanelComparingFromBestSimulation(actualSimulationReport, singleAdvancedReport.getSimulationStepReport(), intervalStart, intervalEnd, stateAndRoleName).forEach(mainPanel::add);
 
+            mainPanel.add(createShowRuleButton(simulatedAdvancedReports.indexOf(singleAdvancedReport)));
             mainPanel.add(Box.createVerticalStrut(25));
         });
+    }
+
+    private JButton createShowRuleButton(int i) {
+        JButton button = new JButton("Show Init Rule State");
+        button.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String stateName = stateAndRoleName.split(":")[1];
+                Arrays.stream(SimulationComponent.getInstance().getGraph().getNodes().toArray()).forEach(node -> {
+                    if (node.getAttribute(ConfigLoader.colNameRootState).equals(stateName)
+                            && node.getAttribute(ConfigLoader.colNameRuleNodeState + "_" + i).equals(stateName)) {
+                        node.setColor(Color.green);
+                    } else if (node.getAttribute(ConfigLoader.colNameRootState).equals(stateName)) {
+                        node.setColor(Color.red);
+                    } else if (node.getAttribute(ConfigLoader.colNameRuleNodeState + "_" + i).equals(stateName)) {
+                        node.setColor(Color.yellow);
+                    } else {
+                        node.setColor(Color.GRAY);
+                    }
+                });
+            }});
+        return button;
     }
 
     private void generateForManual(JPanel mainPanel) {

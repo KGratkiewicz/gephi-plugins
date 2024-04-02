@@ -19,7 +19,7 @@ public class PredictSimulationByChartButton extends JButton {
     private class PredictSimulationListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
-            reverseSimulationComponent.setReverseSimulationState(2);
+            reverseSimulationComponent.setState(2);
             reverseSimulationComponent.initComponents();
             reverseSimulationComponent.revalidate();
             reverseSimulationComponent.repaint();

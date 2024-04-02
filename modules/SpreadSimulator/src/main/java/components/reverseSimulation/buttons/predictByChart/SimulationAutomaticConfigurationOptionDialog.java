@@ -212,15 +212,29 @@ public class SimulationAutomaticConfigurationOptionDialog extends JDialog {
             currentNumberOfNodes = 1;
             diffList = new ArrayList<>();
 
+            var table = simulationComponent.getGraph().getModel().getNodeTable();
+            System.out.println("Performing prediction of strategy: " + strategy.rule + " number of nodes: 1");
             simulationReportList = startSimulation(conductSimulations, steps, this.stateAndRoleName, simulationComponent, strategy);
             while (!bestSolutionFound) {
                 currentNumberOfNodes++;
+                if(!table.hasColumn(ConfigLoader.colNameTempNodeState)) {
+                    table.addColumn(ConfigLoader.colNameTempNodeState, String.class);
+                }
+                Arrays.stream(simulationComponent.getGraph().getNodes().toArray()).forEach(node -> {
+                    node.setAttribute(ConfigLoader.colNameTempNodeState, node.getAttribute(ConfigLoader.colNameInitialNodeState));
+                } );
+                System.out.println("Performing prediction of strategy: " + strategy.rule + " number of nodes: " + currentNumberOfNodes);
                 var nextSimulation = startSimulation(conductSimulations, steps, this.stateAndRoleName, simulationComponent, strategy);
                 var pairOfDiff = compareSimulation(actualReport, simulationReportList, nextSimulation, predictionStartInterval, predictionEndInterval, this.stateAndRoleName);
                 diffList.add(Pair.of(currentNumberOfNodes - 1, pairOfDiff.first()));
                 if (pairOfDiff.first() <= pairOfDiff.second()) {
                     bestSolutionFound = true;
                     diffList.add(Pair.of(currentNumberOfNodes, pairOfDiff.second()));
+                    if(!table.hasColumn(ConfigLoader.colNameRuleNodeState + "_" + strategyList.indexOf(strategy)))
+                        table.addColumn(ConfigLoader.colNameRuleNodeState + "_" + strategyList.indexOf(strategy), String.class);
+                    Arrays.stream(simulationComponent.getGraph().getNodes().toArray()).forEach(node -> {
+                        node.setAttribute(ConfigLoader.colNameRuleNodeState + "_" + strategyList.indexOf(strategy), node.getAttribute(ConfigLoader.colNameTempNodeState));
+                    } );
                 } else {
                     simulationReportList = nextSimulation;
                 }
@@ -297,6 +311,10 @@ public class SimulationAutomaticConfigurationOptionDialog extends JDialog {
     private List<List<SimulationStepReport>> startSimulation(int conductSimulations, int steps, String stateAndRoleName, SimulationComponent simulationComponent, AdvancedRule strategy) {
         List<Simulation> simulationList = new ArrayList<>();
         for (int i = 0; i < conductSimulations; i++) {
+            if (i % 10 == 0) {
+                // Log every 10th simulation
+                System.out.println("Performed " + i + " simulation of " + conductSimulations);
+            }
             applyRules(simulationComponent, stateAndRoleName, strategy);
             createNewSimulation(simulationComponent);
             for (int l = 0; l < steps; l++) {

@@ -82,7 +82,6 @@ public class ABCD implements Generator {
     public Set<Pair<Integer, Integer>> generateABCDGraph(List<List<Integer>> communityAssignments, List<Integer> W, ContainerLoader container) {
         Set<Pair<Integer, Integer>> edges = new HashSet<>();
         Map<Integer, NodeDraft> nodes = new HashMap<>();
-        int totalDegree = W.stream().mapToInt(Integer::intValue).sum();
 
         // Create nodes
         for (int i = 0; i < W.size(); i++) {
@@ -107,7 +106,6 @@ public class ABCD implements Generator {
         for (List<Integer> community : communityAssignments) {
             int Wi = community.stream().mapToInt(W::get).sum();
             int externalEdges = (int) (xi * Wi / 2);
-
             edges.addAll(sampleExternalEdges(edges, community, W, externalEdges, nodes, container));
             Progress.progress(progressTicket);
         }

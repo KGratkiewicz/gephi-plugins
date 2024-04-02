@@ -24,6 +24,7 @@ public class ConfigLoader {
     public static final String colNameInitialNodeState = getProperty("colName.initialNodeState");
     public static final String colNameHeatMapValue = getProperty("colName.heatMapValue");
     public static final String colNameTempNodeState = getProperty("colName.tempNodeState");
+    public static final String colNameRuleNodeState = getProperty("colName.ruleNodeState");
     public static final String messageErrorUnknowTransitionType = getProperty("message.error.unknowTransitionType");
     public static final String colNameNodeRole = getProperty("colName.nodeRole");
     public static final String colNameModelBuilderDescription = getProperty("colName.modelBuilder.description");
