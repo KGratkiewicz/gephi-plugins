@@ -127,14 +127,20 @@ public class VisibilityOptionDialog extends JDialog {
             table.addColumn(ConfigLoader.colNameHeatMapValue, String.class);
         var nodes = List.of(graph.getNodes().toArray());
 
-//        TODO nie bierze ostatniej symulacji trzeba dodac
         var simulationReport = reverseSimulationComponent.getSimulationStatesList();
-        simulationReport.forEach(oneSimulationReport -> oneSimulationReport.forEach(nodeData -> {
-            if (nodeData.getNodeTempState().equals(getExaminedStateAndRole().split(":")[1])) {
-                var nodeToIncrease = nodes.stream().filter(node -> node.getStoreId() == nodeData.getNodeStoreId()).findFirst();
-                nodeToIncrease.ifPresent(node -> node.setAttribute(ConfigLoader.colNameHeatMapValue, String.valueOf(getNodeIntValue(node, ConfigLoader.colNameHeatMapValue) + 1)));
-            }
-        }));
+        var nodeWithHeatMapvalue = nodes.stream()
+                .filter(node -> node.getAttribute(ConfigLoader.colNameHeatMapValue) != null)
+                .filter(node -> Integer.parseInt((String) node.getAttribute(ConfigLoader.colNameHeatMapValue)) > 0)
+                .findFirst();
+
+        if (nodeWithHeatMapvalue.isEmpty()) {
+            simulationReport.forEach(oneSimulationReport -> oneSimulationReport.forEach(nodeData -> {
+                if (nodeData.getNodeTempState().equals(getExaminedStateAndRole().split(":")[1])) {
+                    var nodeToIncrease = nodes.stream().filter(node -> node.getStoreId() == nodeData.getNodeStoreId()).findFirst();
+                    nodeToIncrease.ifPresent(node -> node.setAttribute(ConfigLoader.colNameHeatMapValue, String.valueOf(getNodeIntValue(node, ConfigLoader.colNameHeatMapValue) + 1)));
+                }
+            }));
+        }
 
         paintNodes(nodes);
     }
