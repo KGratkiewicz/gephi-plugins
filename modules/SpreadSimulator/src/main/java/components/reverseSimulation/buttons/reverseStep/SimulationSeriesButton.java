@@ -9,13 +9,12 @@ import lombok.Getter;
 import lombok.Setter;
 import org.gephi.graph.api.Graph;
 import org.gephi.graph.api.GraphController;
-import org.gephi.utils.longtask.spi.LongTask;
-import org.gephi.utils.progress.ProgressTicket;
 import org.openide.util.Lookup;
 import simulationModel.node.NodeStateDecorator;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -34,7 +33,6 @@ public class SimulationSeriesButton extends JButton {
     }
 
     private void openInputDialogAndRunSimulation() {
-//        TODO tutaj zmiana
         OptionDialog dialog = new OptionDialog(null, reverseSimulationComponent, "Stop condition");
         dialog.setVisible(true);
         dialog.dispose();
@@ -46,50 +44,65 @@ public class SimulationSeriesButton extends JButton {
                 table.addColumn(ConfigLoader.colNameTempNodeState, String.class);
 
             for(int i = 1; i < dialog.getConductSimulations(); i++){
-                runSimulation(stepNumber);
+                runSimulation(stepNumber, dialog.examinedStateAndRole);
                 this.simulation = reverseSimulationComponent.NewSeries(simulation);
             }
-            runSimulation(stepNumber);
+            runSimulation(stepNumber, dialog.examinedStateAndRole);
         }
+
+        InfoDialog infoDialog = new InfoDialog(null, "Done");
+        infoDialog.setVisible(true);
+        infoDialog.dispose();
+
         reverseSimulationComponent.initComponents();
         reverseSimulationComponent.repaint();
         reverseSimulationComponent.revalidate();
     }
 
-    private void runSimulation(int stepNumber) {
-        while(simulation.getStep() < stepNumber - 1) {
+    private void runSimulation(int stepNumber, String examinedStateAndRole) {
+        while(!(simulation.getStep() > stepNumber || stateNodeCount(examinedStateAndRole) < 1)) {
+            List.of(simulation.getGraph().getNodes().toArray()).forEach(e ->
+                    e.setAttribute(ConfigLoader.colNameTempNodeState, e.getAttribute(ConfigLoader.colNameNodeState).toString()));
             simulation.Step();
         }
 
         List.of(simulation.getGraph().getNodes().toArray()).forEach(e ->
-                e.setAttribute(ConfigLoader.colNameTempNodeState, e.getAttribute(ConfigLoader.colNameNodeState).toString()));
-        simulation.Step();
-        List.of(simulation.getGraph().getNodes().toArray()).forEach(e -> {
-            if (e.getAttribute(ConfigLoader.colNameNodeState).equals(e.getAttribute(ConfigLoader.colNameTempNodeState))) {
-                e.setAttribute(ConfigLoader.colNameTempNodeState, "");
-            }
-        });
+                e.setAttribute(ConfigLoader.colNameNodeState, e.getAttribute(ConfigLoader.colNameTempNodeState).toString()));
+
 
         reverseSimulationComponent.initComponents();
         reverseSimulationComponent.revalidate();
         reverseSimulationComponent.repaint();
     }
 
-    private boolean stopCondition(String examinedStateAndRole, int nodesToStop) {
-        Optional<Double> coverage = reverseSimulationComponent.getCurrentSimulation().getNodeRoleDecoratorList().stream()
-                .filter(nodeRoleDecorator -> examinedStateAndRole.split(":")[0]
-                        .equals(nodeRoleDecorator.getNodeRole().getName()))
-                .flatMap(nodeRoleDecorator -> nodeRoleDecorator.getNodeStates().stream())
-                .filter(nodeStateDecorator -> examinedStateAndRole.split(":")[1]
-                        .equals(nodeStateDecorator.getNodeState().getName()))
-                .map(NodeStateDecorator::getCoverage)
-                .findFirst();
+    private Long stateNodeCount (String examinedStateAndRole) {
+        Long stateNodesCount = Arrays.stream(reverseSimulationComponent.getCurrentSimulation().getGraph().getNodes().toArray())
+                .filter(node -> node.getAttribute(ConfigLoader.colNameNodeState).equals(examinedStateAndRole.split(":")[1])).count();
 
-        if (coverage.isPresent()) {
-            double numberOfNodesInSimulation = reverseSimulationComponent.getCurrentSimulation().getGraph().getEdgeCount() * coverage.get();
-            return numberOfNodesInSimulation <= nodesToStop;
-        } else {
-            return true;
+        return stateNodesCount;
+    }
+
+    public class InfoDialog extends JDialog {
+        public InfoDialog(Frame parent, String message) {
+            super(parent, "InfoDialog", true);
+
+            JLabel infoLabel = new JLabel(message);
+            add(infoLabel);
+
+            JButton okButton = new JButton("OK");
+            okButton.addActionListener(e -> onOk());
+            add(okButton);
+
+            pack();
+            setLocationRelativeTo(parent);
+        }
+
+        private void onOk() {
+            try {
+                setVisible(false);
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(this, "Some error.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
 
