@@ -36,26 +36,20 @@ public class StartSimulationButton extends JButton {
     private class StartSimulationReverseSeriesListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
-//            TODO changed stop codition to use step
-//            CustomInputDialog dialog = new CustomInputDialog(null);
-//            dialog.setVisible(true);
-//            dialog.dispose();
-//            if (dialog.isSuccessful()) {
             var step = SimulationComponent.getInstance().getCurrentSimulation().getStep();
                 runSimulation(step);
-//            }
         }
     }
 
     private void runSimulation(Integer step) {
-        while(simulation.getStep() < step - 1) {
-            simulation.Step();
-        }
-
-        Graph graph = Lookup.getDefault().lookup(GraphController.class).getGraphModel().getGraph();
-        var table = graph.getModel().getNodeTable();
+        var table = simulation.getGraph().getModel().getNodeTable();
         if(table.getColumn(ConfigLoader.colNameTempNodeState) == null)
             table.addColumn(ConfigLoader.colNameTempNodeState, String.class);
+        while(simulation.getStep() < step - 1) {
+            List.of(simulation.getGraph().getNodes().toArray()).forEach(e ->
+                    e.setAttribute(ConfigLoader.colNameTempNodeState, e.getAttribute(ConfigLoader.colNameNodeState).toString()));
+            simulation.Step();
+        }
 
         List.of(simulation.getGraph().getNodes().toArray()).forEach(e ->
                 e.setAttribute(ConfigLoader.colNameTempNodeState, e.getAttribute(ConfigLoader.colNameNodeState).toString()));

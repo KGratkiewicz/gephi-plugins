@@ -60,15 +60,14 @@ public class SimulationSeriesButton extends JButton {
     }
 
     private void runSimulation(int stepNumber, String examinedStateAndRole) {
+        var table = simulation.getGraph().getModel().getNodeTable();
+        if(table.getColumn(ConfigLoader.colNameTempNodeState) == null)
+            table.addColumn(ConfigLoader.colNameTempNodeState, String.class);
         while(!(simulation.getStep() > stepNumber || stateNodeCount(examinedStateAndRole) < 1)) {
             List.of(simulation.getGraph().getNodes().toArray()).forEach(e ->
                     e.setAttribute(ConfigLoader.colNameTempNodeState, e.getAttribute(ConfigLoader.colNameNodeState).toString()));
             simulation.Step();
         }
-
-        List.of(simulation.getGraph().getNodes().toArray()).forEach(e ->
-                e.setAttribute(ConfigLoader.colNameNodeState, e.getAttribute(ConfigLoader.colNameTempNodeState).toString()));
-
 
         reverseSimulationComponent.initComponents();
         reverseSimulationComponent.revalidate();

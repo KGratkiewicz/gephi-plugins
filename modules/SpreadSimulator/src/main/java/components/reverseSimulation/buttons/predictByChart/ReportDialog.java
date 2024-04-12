@@ -14,12 +14,20 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
+import org.joda.time.DateTime;
 import org.openide.util.Lookup;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
+import java.awt.image.RenderedImage;
+import java.io.File;
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -82,7 +90,6 @@ public class ReportDialog {
         JButton showOnGraphButton = new JButton("Show On Grpah");
         showOnGraphButton.addActionListener(e -> showOnGraph(mainFrame));
         mainPanel.add(showOnGraphButton);
-
         JScrollPane scrollPane = new JScrollPane(mainPanel);
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         mainFrame.add(scrollPane, BorderLayout.CENTER);
@@ -93,10 +100,12 @@ public class ReportDialog {
 
     private void generateForAutomatic(JPanel mainPanel) {
         simulatedAdvancedReports.forEach(singleAdvancedReport -> {
+
+            String xd = singleAdvancedReport.isAscending() == true ? "ascending" : "descending";
             mainPanel.add(getLabelFromStringAndSize(
                     22,
                     true,
-                    "Result for strategy: " + singleAdvancedReport.getStrategyName() + " " + singleAdvancedReport.isAscending()));
+                    "Result for strategy: " + singleAdvancedReport.getStrategyName() + " " + xd));
 
             var bestSolutionDiff = singleAdvancedReport.getReportList().get(singleAdvancedReport.getReportList().size() - 2);
             mainPanel.add(getLabelFromStringAndSize(
@@ -131,6 +140,29 @@ public class ReportDialog {
             getChartPanelComparingFromBestSimulation(actualSimulationReport, singleAdvancedReport.getSimulationStepReport(), intervalStart, intervalEnd, stateAndRoleName).forEach(mainPanel::add);
 
             mainPanel.add(createShowRuleButton(simulatedAdvancedReports.indexOf(singleAdvancedReport)));
+
+            JButton captureButton = new JButton("Capture and Save");
+            captureButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    try {
+                        BufferedImage image = new BufferedImage(mainPanel.getWidth(), mainPanel.getHeight(), BufferedImage.TYPE_INT_ARGB);
+                        Graphics2D graphics = image.createGraphics();
+                        mainPanel.paint(graphics);
+                        graphics.dispose();
+
+                        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
+                        String filename = "C:/Gephi/reports/" + "FrameCapture_" + dtf.format(LocalDateTime.now()) + ".png";
+                        File file = new File(filename);
+
+                        ImageIO.write(image, "png", file);
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                    }
+                }
+            });
+            mainPanel.add(captureButton);
+
             mainPanel.add(Box.createVerticalStrut(25));
         });
     }
@@ -169,6 +201,29 @@ public class ReportDialog {
                 true,
                 "Predicted best simulation compared to actual"));
         getChartPanelComparingFromBestSimulation(actualSimulationReport, simulatedListOfSimulationReports, intervalStart, intervalEnd, stateAndRoleName).forEach(mainPanel::add);
+
+        JButton captureButton = new JButton("Capture and Save");
+        captureButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+                Rectangle screenRectangle = new Rectangle(screenSize);
+                Robot robot = null;
+                try {
+                    robot = new Robot();
+                } catch (AWTException ex) {
+                    throw new RuntimeException(ex);
+                }
+                BufferedImage image = robot.createScreenCapture(screenRectangle);
+                File file = new File("Chart_" + DateTime.now());
+                try {
+                    ImageIO.write(image, "png", file);
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                }
+            }
+        });
+        mainPanel.add(captureButton);
     }
 
     private void showOnGraph(JFrame mainFrame) {

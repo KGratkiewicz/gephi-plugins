@@ -141,6 +141,14 @@ public class ReverseSimulationComponent extends TopComponent {
     public Simulation NewSeries(Simulation currentSimulation) {
         if(currentSimulation != null)
         {
+            List.of(currentSimulation.getGraph().getNodes().toArray()).forEach(e -> {
+                if (!e.getAttribute(ConfigLoader.colNameNodeState).equals(e.getAttribute(ConfigLoader.colNameTempNodeState))) {
+                    e.setAttribute(ConfigLoader.colNameTempNodeState, e.getAttribute(ConfigLoader.colNameTempNodeState));
+                } else {
+                    e.setAttribute(ConfigLoader.colNameTempNodeState, "empty");
+                }
+            });
+
             simulationList.add(currentSimulation.clone());
             simulationSeries = simulationList.size() + 1;
             var nodes = new ArrayList<>(List.of(graph.getNodes().toArray()));

@@ -207,6 +207,7 @@ public class SimulationAutomaticConfigurationOptionDialog extends JDialog {
 
         List<AutomaticAdvancedReport> advancedReportList = new ArrayList<>();
         strategyList.forEach(strategy -> {
+            System.out.println("Performing simulation for: " + strategy.rule);
             List<List<SimulationStepReport>> simulationReportList;
             boolean bestSolutionFound = false;
             currentNumberOfNodes = 1;
@@ -215,6 +216,7 @@ public class SimulationAutomaticConfigurationOptionDialog extends JDialog {
             var table = simulationComponent.getGraph().getModel().getNodeTable();
             simulationReportList = startSimulation(conductSimulations, steps, this.stateAndRoleName, simulationComponent, strategy);
             while (!bestSolutionFound) {
+                System.out.println("Number of nodes: " + currentNumberOfNodes);
                 currentNumberOfNodes++;
                 if(!table.hasColumn(ConfigLoader.colNameTempNodeState)) {
                     table.addColumn(ConfigLoader.colNameTempNodeState, String.class);
@@ -311,8 +313,9 @@ public class SimulationAutomaticConfigurationOptionDialog extends JDialog {
         for (int i = 0; i < conductSimulations; i++) {
             applyRules(simulationComponent, stateAndRoleName, strategy);
             createNewSimulation(simulationComponent);
+            var simulation = simulationComponent.getCurrentSimulation();
             for (int l = 0; l < steps; l++) {
-                simulationComponent.getCurrentSimulation().Step();
+                simulation.Step();
             }
             simulationList.add(simulationComponent.getCurrentSimulation().clone());
         }

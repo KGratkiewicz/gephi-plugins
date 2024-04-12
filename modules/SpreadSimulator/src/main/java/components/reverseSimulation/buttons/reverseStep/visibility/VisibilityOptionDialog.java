@@ -98,7 +98,7 @@ public class VisibilityOptionDialog extends JDialog {
         var nodes = List.of(graph.getNodes().toArray());
         List<NodeRoleDecorator> nodeRoles = SimulationComponent.getInstance().getSimulationModel().getNodeRoles();
         ApplySimulationHelper.GenerateColorPaintings(nodeRoles);
-        ApplySimulationHelper.PaintGraph(nodes, nodeRoles);
+        ApplySimulationHelper.PaintGraphByRootState(nodes, nodeRoles);
     }
 
     private void paintPredictSimulation() {
@@ -129,12 +129,19 @@ public class VisibilityOptionDialog extends JDialog {
 
 //        TODO nie bierze ostatniej symulacji trzeba dodac
         var simulationReport = reverseSimulationComponent.getSimulationStatesList();
-        simulationReport.forEach(oneSimulationReport -> oneSimulationReport.forEach(nodeData -> {
-            if (nodeData.getNodeTempState().equals(getExaminedStateAndRole().split(":")[1])) {
-                var nodeToIncrease = nodes.stream().filter(node -> node.getStoreId() == nodeData.getNodeStoreId()).findFirst();
-                nodeToIncrease.ifPresent(node -> node.setAttribute(ConfigLoader.colNameHeatMapValue, String.valueOf(getNodeIntValue(node, ConfigLoader.colNameHeatMapValue) + 1)));
-            }
-        }));
+
+        var alreadyHeatMapCalculated = nodes.stream()
+                .filter(node -> node.getAttribute(ConfigLoader.colNameHeatMapValue) != null)
+                .findFirst();
+
+        if (alreadyHeatMapCalculated.isEmpty()) {
+            simulationReport.forEach(oneSimulationReport -> oneSimulationReport.forEach(nodeData -> {
+                if (nodeData.getNodeTempState().equals(getExaminedStateAndRole().split(":")[1])) {
+                    var nodeToIncrease = nodes.stream().filter(node -> node.getStoreId() == nodeData.getNodeStoreId()).findFirst();
+                    nodeToIncrease.ifPresent(node -> node.setAttribute(ConfigLoader.colNameHeatMapValue, String.valueOf(getNodeIntValue(node, ConfigLoader.colNameHeatMapValue) + 1)));
+                }
+            }));
+        }
 
         paintNodes(nodes);
     }
