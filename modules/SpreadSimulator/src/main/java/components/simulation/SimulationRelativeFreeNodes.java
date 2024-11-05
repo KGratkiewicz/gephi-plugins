@@ -76,7 +76,7 @@ public class SimulationRelativeFreeNodes extends Simulation {
                     ConditionProbabilityNode(node, neighbour, transition);
                     break;
                 default:
-                    throw new NotImplementedException(ConfigLoader.messageErrorUnknowTransitionType);
+                    throw new NotImplementedException(ConfigLoader.messageErrorUnknownTransitionType);
             }
         }
     }

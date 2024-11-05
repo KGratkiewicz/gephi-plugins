@@ -138,7 +138,7 @@
                 <artifactId>nbm-maven-plugin</artifactId>
                 <configuration>
                     <licenseName>Apache 2.0</licenseName>
-                    <author>jakubgr and C. Bartosiak</author>
+                    <author>Jakub Grątkiewicz</author>
                     <publicPackages>
                         <!-- Insert public packages -->
                     </publicPackages>

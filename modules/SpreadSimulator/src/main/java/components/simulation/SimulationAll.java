@@ -50,7 +50,7 @@ public class SimulationAll extends Simulation {
                         ConditionProbabilityNode(graph, node, transition);
                         break;
                     default:
-                        throw new NotImplementedException(ConfigLoader.messageErrorUnknowTransitionType);
+                        throw new NotImplementedException(ConfigLoader.messageErrorUnknownTransitionType);
                 }
             }
         }
