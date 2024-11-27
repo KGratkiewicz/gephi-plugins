@@ -32,6 +32,8 @@ public class SimulationButton extends JButton {
         if (visualization) {
             for (int i = 0; i < conductSteps; i++) {
                 simulation.Step();
+                simulationComponent.repaint();
+                simulationComponent.revalidate();
                 try {
                     Thread.sleep(delay);
                 } catch (InterruptedException ex) {
