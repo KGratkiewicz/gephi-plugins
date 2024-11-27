@@ -1,18 +1,18 @@
 package components.simulationLogic;
 
 import components.simulation.Simulation;
+import components.simulation.SimulationRunner;
 import configLoader.ConfigLoader;
+import org.gephi.utils.longtask.api.LongTaskExecutor;
+import org.gephi.utils.progress.Progress;
+import org.gephi.utils.progress.ProgressTicket;
+import org.gephi.utils.progress.ProgressTicketProvider;
+import org.openide.util.Lookup;
 
 import javax.swing.*;
 import java.awt.*;
 
-public class SimulationSeriesButton extends JButton {
-    private final SimulationComponent simulationComponent;
-    private Simulation simulation;
-    private Integer simulationsNumber;
-    private Integer conductSteps;
-    private Boolean visualization;
-    private Integer delay;
+public class SimulationSeriesButton extends RunSimulationButton {
 
     public SimulationSeriesButton(Simulation simulation, SimulationComponent simulationComponent) {
         this.setText(ConfigLoader.buttonLabelRunSimulationSeries);
@@ -22,38 +22,16 @@ public class SimulationSeriesButton extends JButton {
     }
 
     private void openInputDialogAndRunSimulation() {
+
         CustomInputDialog dialog = new CustomInputDialog(null);
         dialog.setVisible(true);
         dialog.dispose();
         if (dialog.isSuccessful()) {
-            for(int i = 1; i < simulationsNumber; i++){
-                runSimulation();
-                this.simulation = simulationComponent.NewSeries(simulation);
-            }
-            runSimulation();
-        }
-        simulationComponent.initComponents();
-        simulationComponent.repaint();
-        simulationComponent.revalidate();
-    }
+            LongTaskExecutor executor = new LongTaskExecutor(true);
+            var simulationRunner = new SimulationRunner(this);
+            executor.execute(simulationRunner, simulationRunner::runSimulationSeries);
 
-    private void runSimulation() {
-        if (visualization) {
-            for (int i = 0; i < conductSteps; i++) {
-                simulation.Step();
-                try {
-                    Thread.sleep(delay);
-                } catch (InterruptedException ex) {
-                    throw new RuntimeException(ex);
-                }
-            }
         }
-        else{
-            for (int i = 0; i < conductSteps; i++) {
-                simulation.Step();
-            }
-        }
-
         simulationComponent.initComponents();
         simulationComponent.repaint();
         simulationComponent.revalidate();

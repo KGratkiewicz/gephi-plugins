@@ -1,16 +1,18 @@
 package components.simulationLogic;
 
 import components.simulation.Simulation;
+import components.simulation.SimulationRunner;
 import configLoader.ConfigLoader;
+import org.gephi.utils.longtask.api.LongTaskExecutor;
+import org.gephi.utils.progress.Progress;
+import org.gephi.utils.progress.ProgressTicket;
+import org.gephi.utils.progress.ProgressTicketProvider;
+import org.openide.util.Lookup;
+
 import javax.swing.*;
 import java.awt.*;
 
-public class SimulationButton extends JButton {
-    private final SimulationComponent simulationComponent;
-    private final Simulation simulation;
-    private Integer conductSteps;
-    private Boolean visualization;
-    private Integer delay;
+public class SimulationButton extends RunSimulationButton {
 
     public SimulationButton(Simulation simulation, SimulationComponent simulationComponent) {
         this.setText(ConfigLoader.buttonLabelRunSimulation);
@@ -24,32 +26,13 @@ public class SimulationButton extends JButton {
         dialog.setVisible(true);
         dialog.dispose();
         if (dialog.isSuccessful()) {
-            runSimulation();
+            LongTaskExecutor executor = new LongTaskExecutor(true);
+            var simulationRunner = new SimulationRunner(this);
+            executor.execute(simulationRunner, simulationRunner::runSimulation);
         }
-    }
-
-    private void runSimulation() {
-        if (visualization) {
-            for (int i = 0; i < conductSteps; i++) {
-                simulation.Step();
-                simulationComponent.repaint();
-                simulationComponent.revalidate();
-                try {
-                    Thread.sleep(delay);
-                } catch (InterruptedException ex) {
-                    throw new RuntimeException(ex);
-                }
-            }
-        }
-        else{
-            for (int i = 0; i < conductSteps; i++) {
-                simulation.Step();
-            }
-        }
-
         simulationComponent.initComponents();
-        simulationComponent.revalidate();
         simulationComponent.repaint();
+        simulationComponent.revalidate();
     }
 
     private class CustomInputDialog extends JDialog {
