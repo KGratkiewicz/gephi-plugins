@@ -170,6 +170,7 @@ public class ApplySimulationHelper {
                             node.setAttribute("NodeState", nodeState.getNodeState().getName());
                         }
                     });
+
                 });
     }
 

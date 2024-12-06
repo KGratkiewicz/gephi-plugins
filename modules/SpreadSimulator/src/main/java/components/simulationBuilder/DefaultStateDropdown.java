@@ -9,14 +9,41 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public class DefaultStateDropdown {
-    public JComboBox generate(SimulationBuilderComponent simulationBuilderComponent, NodeRoleDecorator nodeRoleDecorator){
-        var nodeStates = nodeRoleDecorator.getNodeStates().stream().map(x -> x.getNodeState()).collect(Collectors.toList());
-        var defaultStateOptions = nodeStates.stream().map(state -> state.getName().toString()).toArray();
-        nodeRoleDecorator.setDefaultStateName(defaultStateOptions[0].toString());
-        var combobox = new JComboBox<>(defaultStateOptions);
+    public JComboBox<String> generate(SimulationBuilderComponent simulationBuilderComponent, NodeRoleDecorator nodeRoleDecorator) {
+        var nodeStates = nodeRoleDecorator.getNodeStates()
+                .stream()
+                .map(x -> x.getNodeState())
+                .collect(Collectors.toList());
+
+        List<String> defaultStateOptions = nodeStates.stream()
+                .map(state -> state.getName().toString())
+                .collect(Collectors.toList());
+
+        if (nodeStates.stream()
+                .map(x -> x.getName().toString())
+                .noneMatch(x -> x.equals(nodeRoleDecorator.getDefaultStateName()))) {
+            nodeRoleDecorator.setDefaultStateName(defaultStateOptions.get(0));
+        } else {
+            var selectedOption = defaultStateOptions.stream()
+                    .filter(x -> x.equals(nodeRoleDecorator.getDefaultStateName()))
+                    .findFirst();
+
+            if (selectedOption.isPresent()) {
+                int selectedIndex = defaultStateOptions.indexOf(selectedOption.get());
+                if (selectedIndex > 0) {
+                    String firstElement = defaultStateOptions.get(0);
+                    defaultStateOptions.set(0, selectedOption.get());
+                    defaultStateOptions.set(selectedIndex, firstElement);
+                }
+            }
+        }
+
+        var combobox = new JComboBox<>(defaultStateOptions.toArray(new String[0]));
         combobox.addActionListener(new InteractionDropdownListener(combobox, nodeRoleDecorator, simulationBuilderComponent));
 
         return combobox;

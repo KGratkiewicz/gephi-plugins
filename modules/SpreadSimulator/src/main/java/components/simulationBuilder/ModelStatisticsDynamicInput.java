@@ -32,7 +32,7 @@ public class ModelStatisticsDynamicInput {
             gbc.anchor = GridBagConstraints.WEST;
             JLabel nodeLabel = new JLabel("NodeRole: " + role.getNodeRole().getName());
             Font currentFont = nodeLabel.getFont();
-            nodeLabel.setFont(currentFont.deriveFont(currentFont.getStyle() | Font.BOLD, currentFont.getSize()+5)); // Wytłuszczenie i zwiększenie rozmiaru o 2 punkty
+            nodeLabel.setFont(currentFont.deriveFont(currentFont.getStyle() | Font.BOLD, currentFont.getSize()+5));
             panel.add(nodeLabel, gbc);
 
             gbc.gridy = row++;
@@ -62,6 +62,27 @@ public class ModelStatisticsDynamicInput {
                 gbc.gridx = 1;
                 var addRuleButton = new AdvancedAssigmentButton(role.getNodeRole(), state, this);
                 panel.add(addRuleButton, gbc);
+
+                gbc.gridx = 2;
+                JButton colorButton = new JButton();
+                colorButton.setPreferredSize(new Dimension(20, 20));
+                colorButton.setBackground(Color.BLACK);
+                if(state.getColor() != null)
+                    colorButton.setBackground(state.getColor());
+                else{
+                    state.setColor(Color.BLACK);
+                }
+                colorButton.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+
+                colorButton.addActionListener(e -> {
+                    Color selectedColor = JColorChooser.showDialog(panel, "Choose Color", null);
+                    if (selectedColor != null) {
+                        state.setColor(selectedColor);
+                        colorButton.setBackground(selectedColor);
+                    }
+                });
+
+                panel.add(colorButton, gbc);
 
                 gbc.gridx = 0;
                 gbc.gridy = row++;

@@ -37,7 +37,6 @@ public class PaintButton extends JButton {
             try {
                 Graph graph = Lookup.getDefault().lookup(GraphController.class).getGraphModel().getGraph();
                 var nodes = List.of(graph.getNodes().toArray());
-                ApplySimulationHelper.GenerateColorPaintings(nodeRoles);
                 ApplySimulationHelper.PaintGraph(nodes, nodeRoles);
             }
             catch (NullPointerException ex){

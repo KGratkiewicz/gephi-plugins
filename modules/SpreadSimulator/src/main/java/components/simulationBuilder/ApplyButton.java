@@ -48,7 +48,6 @@ public class ApplyButton extends JButton {
                 ApplySimulationHelper.ClearModel(graph);
                 ApplySimulationHelper.CrateModelColumns(graph);
                 ApplySimulationHelper.Apply(graph, simulationModel);
-
                 var rules = component.advancedRules.keySet();
                 for (var rule: rules) {
                     var names = rule.split("_");
@@ -58,6 +57,7 @@ public class ApplyButton extends JButton {
                         ExecuteRule(rul, nodeRoleDecorator, names[1]);
                     }
                 }
+                ApplySimulationHelper.PaintGraph(Arrays.asList(graph.getNodes().toArray()), nodeRoles);
             }
             catch (NullPointerException ex){
                 JOptionPane.showMessageDialog(null, "Setup graph model first");
