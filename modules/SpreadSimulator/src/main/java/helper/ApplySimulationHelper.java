@@ -136,9 +136,6 @@ public class ApplySimulationHelper {
                 .sorted(Comparator.comparingDouble(NodeRoleDecorator::getCoverage))
                 .forEach(nodeRole -> {
                     var roleNodesNumber = nodesCount * nodeRole.getCoverage();
-                    if(nodeRole.getMinCoverage() > roleNodesNumber){
-                        roleNodesNumber = nodeRole.getMinCoverage();
-                    }
                     var notAssignedToRoleNodes = nodes.stream().filter(x -> x.getAttribute("NodeRole") == null || x.getAttribute("NodeRole").toString().isEmpty()).collect(Collectors.toList());
                     Collections.shuffle(notAssignedToRoleNodes);
                     for (int i = 0; i < roleNodesNumber && i < notAssignedToRoleNodes.stream().count(); i++) {
@@ -160,9 +157,6 @@ public class ApplySimulationHelper {
                     nodeStates.stream().forEach(nodeState -> {
                         var nodesCount = roleNodes.size();
                         var roleStateNumber = nodesCount * nodeState.getCoverage();
-                        if(nodeState.getMinCoverage() > roleStateNumber){
-                            roleStateNumber = nodeState.getMinCoverage();
-                        }
                         var notAssignedToRoleNodes = roleNodes.stream().filter(x -> x.getAttribute("NodeState") == null || x.getAttribute("NodeState").toString().isEmpty()).collect(Collectors.toList());
                         Collections.shuffle(notAssignedToRoleNodes);
                         for (int i = 0; i < roleStateNumber && i < notAssignedToRoleNodes.stream().count(); i++) {
