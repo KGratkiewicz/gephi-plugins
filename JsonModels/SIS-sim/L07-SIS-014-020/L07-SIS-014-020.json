@@ -1,0 +1,30 @@
+{
+  "name": "L0.7-SIS-0.14-0.20",
+  "description": "Lambda 0.7 ",
+  "transitionMap": [
+    {
+      "transitionType": "noConditionProbability",
+      "sourceState": {
+        "name": "infected"
+      },
+      "destinationState": {
+        "name": "susceptible"
+      },
+      "probability": 0.2
+    },
+    {
+      "transitionType": "conditionProbability",
+      "sourceState": {
+        "name": "susceptible"
+      },
+      "destinationState": {
+        "name": "infected"
+      },
+      "probability": 0.14,
+      "provocativeNeighborName": [
+        "infected"
+      ]
+    }
+  ]
+}
+

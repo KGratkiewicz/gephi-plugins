@@ -1,0 +1,30 @@
+{
+  "name": "L1.0-SIS-0.20-0.20",
+  "description": "Lambda 1.0 ",
+  "transitionMap": [
+    {
+      "transitionType": "noConditionProbability",
+      "sourceState": {
+        "name": "infected"
+      },
+      "destinationState": {
+        "name": "susceptible"
+      },
+      "probability": 0.2
+    },
+    {
+      "transitionType": "conditionProbability",
+      "sourceState": {
+        "name": "susceptible"
+      },
+      "destinationState": {
+        "name": "infected"
+      },
+      "probability": 0.2,
+      "provocativeNeighborName": [
+        "infected"
+      ]
+    }
+  ]
+}
+

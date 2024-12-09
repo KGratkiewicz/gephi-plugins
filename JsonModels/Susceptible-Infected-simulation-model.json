@@ -34,7 +34,7 @@
         },
         {
           "coverage": 0,
-          "minCoverage": 1,
+          "minCoverage": 0,
           "nodeState": { "name": "infected" }
         }
       ]
