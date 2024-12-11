@@ -27,6 +27,6 @@ public class GetSeriesReportButton extends JButton {
         fileName = "SimulationReport_" + DateTime.now().toString("yyyy-MM-dd-HH-mm-ss");
         List<List<SimulationStepReport>> listOfAllSimulations = simulationList.stream().map(Simulation::getReport).collect(Collectors.toList());
         listOfAllSimulations.add(simulationComponent.getCurrentSimulation().getReport());
-        ReportGeneratorHelper.generateSeriesReport(listOfAllSimulations, fileName);
+        ReportGeneratorHelper.generateSeriesReport(listOfAllSimulations, fileName, simulationComponent.getSimulationModel());
     }
 }
