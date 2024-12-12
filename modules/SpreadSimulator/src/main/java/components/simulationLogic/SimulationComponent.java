@@ -93,7 +93,6 @@ public class SimulationComponent extends TopComponent {
         add(new SimulationSeriesButton(currentSimulation, this));
         add(new GetReportButton(this));
         add(new GetSeriesReportButton(this, simulationList));
-        add(new GetSeriesReportButton(this, simulationList));
         add(new RefreshButton(this));
         updateInstance();
     }
