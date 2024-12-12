@@ -18,7 +18,7 @@ public class GetReportButton extends JButton {
 
     public void GetReport(){
         UUID uuid = UUID.randomUUID();
-        fileName = "SimulationReport_" + DateTime.now().toString("yyyy-MM-dd-HH-mm-ss");
+        fileName = simulationComponent.getSimulationModel().getName() + "_step_report_" + DateTime.now().toString("yyyy-MM-dd-HH-mm");
         ReportGeneratorHelper.generateReport(simulationComponent.getCurrentSimulation().getReport(), fileName, simulationComponent.getSimulationModel());
     }
 }

@@ -24,7 +24,7 @@ public class GetSeriesReportButton extends JButton {
 
     public void GetReport(){
         UUID uuid = UUID.randomUUID();
-        fileName = "SimulationReport_" + DateTime.now().toString("yyyy-MM-dd-HH-mm-ss");
+        fileName = simulationComponent.getSimulationModel().getName() + "_series_report_" + DateTime.now().toString("yyyy-MM-dd-HH-mm");
         List<List<SimulationStepReport>> listOfAllSimulations = simulationList.stream().map(Simulation::getReport).collect(Collectors.toList());
         listOfAllSimulations.add(simulationComponent.getCurrentSimulation().getReport());
         ReportGeneratorHelper.generateSeriesReport(listOfAllSimulations, fileName, simulationComponent.getSimulationModel());
