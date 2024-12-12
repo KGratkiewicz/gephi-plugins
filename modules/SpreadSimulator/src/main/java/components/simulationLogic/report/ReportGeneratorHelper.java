@@ -6,7 +6,6 @@ import jxl.Workbook;
 import jxl.write.Label;
 import jxl.write.WritableSheet;
 import jxl.write.WritableWorkbook;
-import org.gephi.statistics.plugin.ChartUtils;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.ChartUtilities;
@@ -23,108 +22,9 @@ import java.io.*;
 import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
+import jxl.write.Number;
 
 public class ReportGeneratorHelper {
-
-    public static void generateCSV(List<SimulationStepReport> reports, String filename) {
-        Map<String, String> csvData = prepareHeaders(reports);
-
-        File directory = createDirectory(filename);
-
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(directory + "/" + filename + ".csv"))) {
-            writer.write("step," + String.join(",", csvData.keySet()));
-            writer.newLine();
-
-            for (SimulationStepReport report : reports) {
-                Map<String, String> rowData = new LinkedHashMap<>(csvData);
-                populateRowData(report, rowData);
-                writer.write(report.getStep() + "," + String.join(",", rowData.values()));
-                writer.newLine();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public static void generateExcelJXL(List<SimulationStepReport> reports, String filename) {
-        try {
-            File directory = createDirectory(filename);
-            WritableWorkbook workbook = Workbook.createWorkbook(new File(directory + "/" + filename + ".xls"));
-            WritableSheet sheet = workbook.createSheet("Simulation Report", 0);
-
-            Map<String, String> csvData = prepareHeaders(reports);
-
-            writeExcelHeaders(sheet, csvData);
-            writeExcelData(reports, sheet, csvData);
-
-            workbook.write();
-            workbook.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    private static Map<String, String> prepareHeaders(List<SimulationStepReport> reports) {
-        Map<String, String> csvData = new LinkedHashMap<>();
-        for (SimulationStepReport report : reports) {
-            for (SimulationStepReport.NodeRoleReport roleReport : report.getRoleReports()) {
-                for (SimulationStepReport.NodeRoleReport.StateElement stateElement : roleReport.getStatesReport()) {
-                    String header = roleReport.getNodeRoleName() + "-" + stateElement.getNodeStateName();
-                    csvData.putIfAbsent(header + "_num", "");
-                    csvData.putIfAbsent(header + "_coverage", "");
-                }
-            }
-        }
-        return csvData;
-    }
-
-    private static File createDirectory(String filename) {
-        File directory = new File(ConfigLoader.folderReports + filename);
-        if (!directory.exists()) {
-            directory.mkdirs();
-        }
-        return directory;
-    }
-
-    private static void populateRowData(SimulationStepReport report, Map<String, String> rowData) {
-        for (SimulationStepReport.NodeRoleReport roleReport : report.getRoleReports()) {
-            for (SimulationStepReport.NodeRoleReport.StateElement stateElement : roleReport.getStatesReport()) {
-                String headerBase = roleReport.getNodeRoleName() + "-" + stateElement.getNodeStateName();
-                rowData.put(headerBase + "_num", stateElement.getNumberOfNodes().toString());
-                rowData.put(headerBase + "_coverage", stateElement.getCoverage().toString());
-            }
-        }
-    }
-
-    private static void writeExcelHeaders(WritableSheet sheet, Map<String, String> csvData) throws Exception {
-        Label label = new Label(0, 0, "step");
-        sheet.addCell(label);
-        int columnIndex = 1;
-        for (String header : csvData.keySet()) {
-            label = new Label(columnIndex, 0, header);
-            sheet.addCell(label);
-            columnIndex++;
-        }
-    }
-
-    private static void writeExcelData(List<SimulationStepReport> reports, WritableSheet sheet, Map<String, String> csvData) throws Exception {
-        int rowIndex = 1;
-        for (SimulationStepReport report : reports) {
-            Label label = new Label(0, rowIndex, report.getStep().toString());
-            sheet.addCell(label);
-
-            Map<String, String> rowData = new LinkedHashMap<>(csvData);
-            populateRowData(report, rowData);
-
-            int columnIndex = 1;
-            for (String value : rowData.values()) {
-                label = new Label(columnIndex, rowIndex, value);
-                sheet.addCell(label);
-                columnIndex++;
-            }
-            rowIndex++;
-        }
-    }
 
     public static void generateReport(List<SimulationStepReport> report, String fileName, SimulationModel simulationModel) {
         JFrame graphFrame = createGraphFrame();
@@ -247,9 +147,9 @@ public class ReportGeneratorHelper {
         JButton saveAsXLSXButton = new JButton("Save as XLSX");
         JButton saveAsImageButton = new JButton("Save as IMAGE");
 
-        saveAsCSVButton.addActionListener(e -> generateCSV(report, fileName));
-        saveAsXLSXButton.addActionListener(e -> generateExcelJXL(report, fileName));
-        saveAsImageButton.addActionListener(e -> saveChartsAsImages(chartList, fileName));
+        saveAsCSVButton.addActionListener(e -> ExportReportHelper.generateCSV(report, fileName));
+        saveAsXLSXButton.addActionListener(e -> ExportReportHelper.generateExcelJXL(report, fileName));
+        saveAsImageButton.addActionListener(e -> ExportReportHelper.saveChartsAsImages(chartList, fileName));
 
         buttonPanel.add(saveAsCSVButton);
         buttonPanel.add(saveAsXLSXButton);
@@ -257,16 +157,22 @@ public class ReportGeneratorHelper {
         panel.add(buttonPanel, BorderLayout.SOUTH);
     }
 
-    private static void saveChartsAsImages(List<JFreeChart> charts, String fileName) {
-        try {
-            File directory = createDirectory(fileName);
-            for (JFreeChart chart : charts) {
-                ChartUtilities.saveChartAsPNG(new File(directory + "/chart_" + (charts.indexOf(chart) + 1) + ".png"), chart, 1200, 800);
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+    private static void addControlButtonsAvg(JPanel panel, List<JFreeChart> chartList, List<Pair<String, Map<Integer, Double>>> report, String fileName) {
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JButton saveAsCSVButton = new JButton("Save as CSV");
+        JButton saveAsXLSXButton = new JButton("Save as XLSX");
+        JButton saveAsImageButton = new JButton("Save as IMAGE");
+
+        saveAsCSVButton.addActionListener(e -> ExportReportHelper.generateCSVAvg(report, fileName));
+        saveAsXLSXButton.addActionListener(e -> ExportReportHelper.generateExcelJXLAvg(report, fileName));
+        saveAsImageButton.addActionListener(e -> ExportReportHelper.saveChartsAsImages(chartList, fileName));
+
+        buttonPanel.add(saveAsCSVButton);
+        buttonPanel.add(saveAsXLSXButton);
+        buttonPanel.add(saveAsImageButton);
+        panel.add(buttonPanel, BorderLayout.SOUTH);
     }
+
 
     public static List<Pair<String, Map<Integer, Double>>> getValuesFromReport(List<SimulationStepReport> report, int roleNumber) {
         List<SimulationStepReport.NodeRoleReport> correctRoleList = report.stream()
@@ -337,6 +243,8 @@ public class ReportGeneratorHelper {
         JPanel graphPanel = new JPanel();
         graphPanel.setLayout(new BoxLayout(graphPanel, BoxLayout.PAGE_AXIS));
 
+        List<Pair<String, Map<Integer, Double>>> averagedSeries = null;
+
         int roleCount = reports.get(0).get(0).getRoleReports().size();
         List<JFreeChart> chartList = new ArrayList<>();
 
@@ -344,7 +252,7 @@ public class ReportGeneratorHelper {
 
         for (int i = 0; i < roleCount; i++) {
             String roleName = reports.get(0).get(0).getRoleReports().get(i).getNodeRoleName();
-            List<Pair<String, Map<Integer, Double>>> averagedSeries = getSeriesReport(reports, roleName, simulationModel);
+            averagedSeries = getSeriesReport(reports, roleName, simulationModel);
 
             for (Pair<String, Map<Integer, Double>> series : averagedSeries) {
                 String stateName = series.left();
@@ -375,7 +283,7 @@ public class ReportGeneratorHelper {
         }
 
         JFreeChart combinedChart = ChartFactory.createXYLineChart(
-                "Combined States", "Time", "Value", combinedDataset,
+                "States", "Time", "Value", combinedDataset,
                 PlotOrientation.VERTICAL, true, true, false
         );
         XYPlot combinedPlot = combinedChart.getXYPlot();
@@ -387,7 +295,10 @@ public class ReportGeneratorHelper {
         ChartPanel combinedChartPanel = new ChartPanel(combinedChart);
         graphPanel.add(combinedChartPanel, 0);
 
-        addControlButtons(graphPanel, chartList, reports.get(0), fileName);
+        chartList.add(combinedChart);
+
+        if(averagedSeries != null)
+            addControlButtonsAvg(graphPanel, chartList, averagedSeries, fileName);
 
         graphFrame.add(graphPanel);
         graphFrame.pack();
