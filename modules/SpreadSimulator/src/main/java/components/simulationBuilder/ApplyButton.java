@@ -110,31 +110,59 @@ public class ApplyButton extends JButton {
         }
 
         private void RandomNStrategy(Graph graph, Integer numOfNodes, Boolean descending, NodeRoleDecorator nodeRoleName, String nodeStateName) {
-            var nodes = Arrays.stream(graph.getNodes().toArray()).collect(Collectors.toList());
-            nodes = nodes.stream().filter(node -> node.getAttribute(ConfigLoader.colNameNodeState.toString()).toString() == nodeRoleName.getDefaultStateName().toString()).collect(Collectors.toList());
+            var nodes = Arrays.stream(graph.getNodes().toArray())
+                    .filter(node -> node.getAttribute(ConfigLoader.colNameNodeState.toString())
+                            .toString()
+                            .equals(nodeRoleName.getDefaultStateName().toString()))
+                    .collect(Collectors.toList());
+            if (nodes.isEmpty()) {
+                JOptionPane.showMessageDialog(null, "Select correct default state.");
+                return;
+            }
             var rnd = new Random();
+            var selectedNodes = new HashSet<Node>();
             for (int i = 0; i < numOfNodes; i++) {
-                var index = rnd.nextInt((int) nodes.stream().count());
+                int index = rnd.nextInt(nodes.size());
                 var selectedNode = nodes.get(index);
+                if (!selectedNodes.add(selectedNode)) {
+                    i--;
+                    continue;
+                }
                 selectedNode.setAttribute(ConfigLoader.colNameNodeRole, nodeRoleName.getNodeRole().getName().toString());
                 selectedNode.setAttribute(ConfigLoader.colNameNodeState, nodeStateName);
             }
         }
 
+
         private void RandomRandomStrategy(Graph graph, Integer numOfNodes, Boolean descending, NodeRoleDecorator nodeRoleName, String nodeStateName) {
-            var nodes = Arrays.stream(graph.getNodes().toArray()).collect(Collectors.toList());
-            nodes = nodes.stream().filter(node -> node.getAttribute(ConfigLoader.colNameNodeState.toString()).toString() == nodeRoleName.getDefaultStateName().toString()).collect(Collectors.toList());
+            var nodes = Arrays.stream(graph.getNodes().toArray())
+                    .filter(node -> node.getAttribute(ConfigLoader.colNameNodeState.toString())
+                            .toString()
+                            .equals(nodeRoleName.getDefaultStateName().toString()))
+                    .collect(Collectors.toList());
+            if (nodes.isEmpty()) {
+                JOptionPane.showMessageDialog(null, "Select correct default state.");
+                return;
+            }
             var rnd = new Random();
+            var selectedNodes = new HashSet<Node>();
             for (int i = 0; i < numOfNodes; i++) {
-                var index = rnd.nextInt((int) nodes.stream().count());
+                int index = rnd.nextInt(nodes.size());
                 var selectedNode = nodes.get(index);
-                var neighbours = graph.getNeighbors(selectedNode).toArray();
-                index = rnd.nextInt(neighbours.length);
-                selectedNode = neighbours[index];
-                selectedNode.setAttribute(ConfigLoader.colNameNodeRole, nodeRoleName.getNodeRole().getName().toString());
-                selectedNode.setAttribute(ConfigLoader.colNameNodeState, nodeStateName);
+                if (!selectedNodes.add(selectedNode)) {
+                    i--;
+                    continue;
+                }
+                var neighbours = Arrays.asList(graph.getNeighbors(selectedNode).toArray());
+                if (!neighbours.isEmpty()) {
+                    int neighbourIndex = rnd.nextInt(neighbours.size());
+                    var neighbourNode = neighbours.get(neighbourIndex);
+                    neighbourNode.setAttribute(ConfigLoader.colNameNodeRole, nodeRoleName.getNodeRole().getName().toString());
+                    neighbourNode.setAttribute(ConfigLoader.colNameNodeState, nodeStateName);
+                }
             }
         }
+
 
         private void GraphDistanceClosenessStatisticOption(Graph graph, Integer numOfNodes, Boolean descending, NodeRoleDecorator nodeRoleName, String nodeStateName) {
             var eigenvector = new GraphDistance();

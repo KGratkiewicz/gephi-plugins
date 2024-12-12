@@ -77,7 +77,12 @@ public class SimulationSeriesButton extends RunSimulationButton {
                 simulationsNumber = Integer.parseInt(simulationStepField.getText());
                 conductSteps = Integer.parseInt(stepsField.getText());
                 visualization = visualizationCheckbox.isSelected();
-                delay = Integer.parseInt(delayField.getText());
+                try{
+                    delay = Integer.parseInt(delayField.getText());
+                }
+                catch(NumberFormatException e){
+                    delay = 1;
+                }
 
                 if (simulationsNumber <= 0 || conductSteps <= 0 || (delay <= 0 && visualization)) {
                     JOptionPane.showMessageDialog(this, "Values should be greater than 0", "Error", JOptionPane.ERROR_MESSAGE);

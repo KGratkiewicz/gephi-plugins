@@ -71,7 +71,12 @@ public class SimulationButton extends RunSimulationButton {
             try {
                 conductSteps = Integer.parseInt(stepsField.getText());
                 visualization = visualizationCheckbox.isSelected();
-                delay = Integer.parseInt(delayField.getText());
+                try{
+                    delay = Integer.parseInt(delayField.getText());
+                }
+                catch(NumberFormatException e){
+                    delay = 1;
+                }
 
                 if (conductSteps <= 0 || (delay <= 0 && visualization)) {
                     JOptionPane.showMessageDialog(this, "Values should be greater than 0", "Error", JOptionPane.ERROR_MESSAGE);
@@ -80,7 +85,7 @@ public class SimulationButton extends RunSimulationButton {
                 successful = true;
                 setVisible(false);
             } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(this, "Please enter valid integers for steps and delay.", "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Something went wrong.", "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
 
