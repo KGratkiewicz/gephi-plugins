@@ -1,7 +1,12 @@
 package Utils;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Stack;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
+
 import org.gephi.graph.api.Graph;
 import org.gephi.graph.api.Node;
 import org.gephi.graph.api.Table;
@@ -154,6 +159,45 @@ public class Utils {
             Progress.progress(progressTicket);
         }
         return sum / (n - size);
+    }
+
+    public static double weightedCommonNeighborsIndirect(Graph graph, boolean isDirected, Boolean cancel, ProgressTicket progressTicket, String columnName) {
+        var edges = graph.getEdges().toCollection();
+        AtomicReference<Double> totalWCN = new AtomicReference<>(0.0);
+        AtomicInteger edgeCount = new AtomicInteger();
+
+        edges.forEach(edge -> {
+            var srcNode = edge.getSource();
+            var dstNode = edge.getTarget();
+
+            var srcNeighbours = new LinkedHashSet<>(Arrays.asList(graph.getNeighbors(srcNode).toArray()));
+            srcNeighbours.add(srcNode);
+
+            var dstNeighbours = new LinkedHashSet<>(Arrays.asList(graph.getNeighbors(dstNode).toArray()));
+            dstNeighbours.add(dstNode);
+
+            var resultSet = new LinkedHashSet<>();
+            resultSet.addAll(srcNeighbours);
+            resultSet.addAll(dstNeighbours);
+
+            var sum = resultSet.toArray();
+
+            var srcSet = new LinkedHashSet<>(srcNeighbours);
+            var dstSet = new LinkedHashSet<>(dstNeighbours);
+
+            srcSet.retainAll(dstSet);
+            var sub = srcSet.toArray();
+
+            var wcn = (float) sub.length / sum.length;
+            edge.setAttribute(columnName, wcn);
+
+            totalWCN.updateAndGet(v -> new Double((double) (v + wcn)));
+            edgeCount.getAndIncrement();
+
+            progressTicket.progress(1);
+        });
+
+        return edgeCount.get() > 0 ? totalWCN.get() / edgeCount.get() : 0.0;
     }
 
 }
