@@ -30,6 +30,7 @@ public class SimulationBuilderComponent extends TopComponent {
     @Setter
     @Getter
     private List<NodeRoleDecorator> nodeRoles;
+
     public HashMap<String, List<AdvancedRule>> advancedRules;
 
     public SimulationBuilderComponent() {

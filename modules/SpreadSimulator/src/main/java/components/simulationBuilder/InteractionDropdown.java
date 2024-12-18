@@ -12,93 +12,71 @@ import java.awt.event.ActionListener;
 
 public class InteractionDropdown {
 
-    public JComboBox generate(SimulationBuilderComponent simulationBuilderComponent){
-        var interactionOptions = new String[]{
-                "All", "RelativeNodes", "RelativeFreeNodes", "RelativeEdges", "RelativeFreeEdges"
+    public JComboBox<String> generate(SimulationBuilderComponent simulationBuilderComponent) {
+        String[] interactionOptions = {
+                "All", "RelativeNodes", "RelativeFreeNodes", "RelativeEdges", "RelativeFreeEdges", "WeighedCommonNeighbours"
         };
 
-        var combobox = new JComboBox<>(interactionOptions);
-        combobox.addActionListener(new InteractionDropdownListener(combobox, simulationBuilderComponent));
+        JComboBox<String> combobox = new JComboBox<>(interactionOptions);
+        InteractionDropdownHandler handler = new InteractionDropdownHandler(combobox, simulationBuilderComponent);
+        combobox.addActionListener(handler);
 
         return combobox;
     }
 
-    private class InteractionDropdownListener implements ActionListener {
+    private class InteractionDropdownHandler implements ActionListener {
+        private final JComboBox<String> interactionComboBox;
         private final SimulationBuilderComponent simulationBuilderComponent;
-        private final JComboBox interaction;
         private final SimulationModel simulationModel;
-        private final JLabel label;
-        private final JTextField numberField;
-        private final JTextField percentageField;
-        private DocumentListener numberFieldListener;
-        private DocumentListener percentageFieldListener;
+        private final JLabel label = new JLabel();
+        private final JTextField numberField = new JTextField(10);
+        private final JTextField percentageField = new JTextField(10);
 
-        public InteractionDropdownListener(JComboBox interaction, SimulationBuilderComponent simulationBuilderComponent) {
-            this.interaction = interaction;
-            this.simulationModel = simulationBuilderComponent.getSimulationModel();
-            var allInteraction =  new AllInteraction();
-            allInteraction.setInteractionType(InteractionType.All);
-            this.simulationModel.setInteraction(allInteraction);
+        public InteractionDropdownHandler(JComboBox<String> interactionComboBox, SimulationBuilderComponent simulationBuilderComponent) {
+            this.interactionComboBox = interactionComboBox;
             this.simulationBuilderComponent = simulationBuilderComponent;
-            numberField = new JTextField();
-            percentageField = new JTextField();
-            label = new JLabel();
+            this.simulationModel = simulationBuilderComponent.getSimulationModel();
+            setupComponents();
+            initializeDefaultInteraction();
         }
 
+        private void setupComponents() {
+            numberField.getDocument().addDocumentListener(new FieldChangeListener("number"));
+            percentageField.getDocument().addDocumentListener(new FieldChangeListener("percentage"));
+        }
+
+        private void initializeDefaultInteraction() {
+            setInteraction(new AllInteraction(), InteractionType.All);
+        }
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            var interactionItem = interaction.getSelectedItem().toString();
-            simulationBuilderComponent.remove(numberField);
-            simulationBuilderComponent.remove(percentageField);
-            numberField.getDocument().removeDocumentListener(numberFieldListener);
-            percentageField.getDocument().removeDocumentListener(percentageFieldListener);
-            simulationBuilderComponent.remove(label);
-            switch (interactionItem) {
+            String interactionType = (String) interactionComboBox.getSelectedItem();
+            assert interactionType != null;
+            switch (interactionType) {
                 case "All":
-                    var allInteraction =  new AllInteraction();
-                    allInteraction.setInteractionType(InteractionType.All);
-                    simulationModel.setInteraction(allInteraction);
+                    setInteraction(new AllInteraction(), InteractionType.All);
+                    resetUI();
                     break;
                 case "RelativeNodes":
-                    label.setText("Percentage of nodes: ");
-                    var relativeInteraction =  new RelativeNodesInteraction();
-                    relativeInteraction.setInteractionType(InteractionType.RelativeNodes);
-                    simulationModel.setInteraction(relativeInteraction);
-                    simulationBuilderComponent.add(label);
-                    simulationBuilderComponent.add(percentageField);
-                    percentageFieldListener = new RelativeNodesInteractionListener(simulationModel, percentageField);
-                    percentageField.getDocument().addDocumentListener(percentageFieldListener);
+                    setInteraction(new RelativeNodesInteraction(), InteractionType.RelativeNodes);
+                    updateUI("Percentage of nodes:", percentageField);
                     break;
                 case "RelativeFreeNodes":
-                    label.setText("Number of nodes: ");
-                    var relativeFreeInteraction =  new RelativeFreeNodesInteraction();
-                    relativeFreeInteraction.setInteractionType(InteractionType.RelativeFreeNodes);
-                    simulationBuilderComponent.add(label);
-                    simulationModel.setInteraction(relativeFreeInteraction);
-                    simulationBuilderComponent.add(numberField);
-                    numberFieldListener = new RelativeFreeNodesInteractionListener(simulationModel, numberField);
-                    numberField.getDocument().addDocumentListener(numberFieldListener);
+                    setInteraction(new RelativeFreeNodesInteraction(), InteractionType.RelativeFreeNodes);
+                    updateUI("Number of nodes:", numberField);
                     break;
                 case "RelativeEdges":
-                    label.setText("Percentage of edges: ");
-                    var relativeEdgesInteraction =  new RelativeNodesInteraction();
-                    relativeEdgesInteraction.setInteractionType(InteractionType.RelativeEdges);
-                    simulationBuilderComponent.add(label);
-                    simulationModel.setInteraction(relativeEdgesInteraction);
-                    simulationBuilderComponent.add(percentageField);
-                    percentageFieldListener = new RelativeEdgesInteractionListener(simulationModel, percentageField);
-                    percentageField.getDocument().addDocumentListener(percentageFieldListener);
+                    setInteraction(new RelativeEdgesInteraction(), InteractionType.RelativeEdges);
+                    updateUI("Percentage of edges:", percentageField);
                     break;
                 case "RelativeFreeEdges":
-                    label.setText("Number of edges: ");
-                    var relativeFreeEdgesInteraction =  new RelativeFreeNodesInteraction();
-                    relativeFreeEdgesInteraction.setInteractionType(InteractionType.RelativeFreeEdges);
-                    simulationBuilderComponent.add(label);
-                    simulationModel.setInteraction(relativeFreeEdgesInteraction);
-                    simulationBuilderComponent.add(numberField);
-                    numberFieldListener = new RelativeFreeEdgesInteractionListener(simulationModel, numberField);
-                    numberField.getDocument().addDocumentListener(numberFieldListener);
+                    setInteraction(new RelativeFreeEdgesInteraction(), InteractionType.RelativeFreeEdges);
+                    updateUI("Number of edges:", numberField);
+                    break;
+                case "WeighedCommonNeighbours":
+                    setInteraction(new WeightedCommonNeigboursInteraction(), InteractionType.WeighedCommonNeighbors);
+                    resetUI();
                     break;
                 default:
                     JOptionPane.showMessageDialog(null, "Not implemented method yet.");
@@ -107,80 +85,65 @@ public class InteractionDropdown {
             simulationBuilderComponent.revalidate();
             simulationBuilderComponent.repaint();
         }
-    }
 
-
-    private abstract class CustomListener implements DocumentListener {
-        protected final SimulationModel simulationModel;
-        protected final JTextField percentageField;
-        public CustomListener(SimulationModel simulationModel, JTextField percentageField) {
-            this.simulationModel = simulationModel;
-            this.percentageField = percentageField;
-        }
-        protected abstract void Change();
-        @Override
-        public void insertUpdate(DocumentEvent e) {
-            Change();
-        }
-        @Override
-        public void removeUpdate(DocumentEvent e) {
-            Change();
-        }
-        @Override
-        public void changedUpdate(DocumentEvent e) {
-            Change();
-        }
-    }
-
-    private class RelativeNodesInteractionListener extends CustomListener {
-        public RelativeNodesInteractionListener(SimulationModel simulationModel, JTextField percentageField) {
-            super(simulationModel, percentageField);
-        }
-        @Override
-        protected void Change() {
-            var percentage = Double.parseDouble(percentageField.getText());
-            var interaction = (RelativeNodesInteraction) simulationModel.getInteraction();
-            interaction.setPercentage(percentage);
+        private void setInteraction(Interaction interaction, InteractionType type) {
+            interaction.setInteractionType(type);
             simulationModel.setInteraction(interaction);
         }
-    }
 
-    private class RelativeEdgesInteractionListener extends CustomListener {
-        public RelativeEdgesInteractionListener(SimulationModel simulationModel, JTextField percentageField) {
-            super(simulationModel, percentageField);
+        private void resetUI() {
+            simulationBuilderComponent.remove(label);
+            simulationBuilderComponent.remove(numberField);
+            simulationBuilderComponent.remove(percentageField);
         }
-        @Override
-        protected void Change() {
-            var percentage = Double.parseDouble(percentageField.getText());
-            var interaction = (RelativeEdgesInteraction) simulationModel.getInteraction();
-            interaction.setPercentage(percentage);
-            simulationModel.setInteraction(interaction);
-        }
-    }
 
-    private class RelativeFreeNodesInteractionListener extends CustomListener {
-        public RelativeFreeNodesInteractionListener(SimulationModel simulationModel, JTextField percentageField) {
-            super(simulationModel, percentageField);
+        private void updateUI(String labelText, JTextField fieldToShow) {
+            resetUI();
+            label.setText(labelText);
+            simulationBuilderComponent.add(label);
+            simulationBuilderComponent.add(fieldToShow);
         }
-        @Override
-        protected void Change() {
-            var number = Integer.parseInt(percentageField.getText());
-            var interaction = (RelativeFreeNodesInteraction) simulationModel.getInteraction();
-            interaction.setNumber(number);
-            simulationModel.setInteraction(interaction);
-        }
-    }
 
-    private class RelativeFreeEdgesInteractionListener extends CustomListener {
-        public RelativeFreeEdgesInteractionListener(SimulationModel simulationModel, JTextField percentageField) {
-            super(simulationModel, percentageField);
-        }
-        @Override
-        protected void Change() {
-            var number = Integer.parseInt(percentageField.getText());
-            var interaction = (RelativeFreeEdgesInteraction) simulationModel.getInteraction();
-            interaction.setNumber(number);
-            simulationModel.setInteraction(interaction);
+        private class FieldChangeListener implements DocumentListener {
+            private final String fieldType;
+
+            public FieldChangeListener(String fieldType) {
+                this.fieldType = fieldType;
+            }
+
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                updateInteraction();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                updateInteraction();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                updateInteraction();
+            }
+
+            private void updateInteraction() {
+                try {
+                    Interaction interaction = simulationModel.getInteraction();
+                    if ("percentage".equals(fieldType)) {
+                        double percentage = Double.parseDouble(percentageField.getText());
+                        if (interaction instanceof PercentageBasedInteraction) {
+                            ((PercentageBasedInteraction) interaction).setPercentage(percentage);
+                        }
+                    } else if ("number".equals(fieldType)) {
+                        int number = Integer.parseInt(numberField.getText());
+                        if (interaction instanceof NumberBasedInteraction) {
+                            ((NumberBasedInteraction) interaction).setNumber(number);
+                        }
+                    }
+                } catch (NumberFormatException ignored) {
+                    // Ignore invalid input
+                }
+            }
         }
     }
 }

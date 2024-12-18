@@ -1,12 +1,7 @@
 package components.reverseSimulation.buttons.predictByChart;
 
 import components.reverseSimulation.ReverseSimulationComponent;
-import components.simulation.Simulation;
-import components.simulation.SimulationAll;
-import components.simulation.SimulationRelativeEdges;
-import components.simulation.SimulationRelativeFreeEdges;
-import components.simulation.SimulationRelativeFreeNodes;
-import components.simulation.SimulationRelativeNodes;
+import components.simulation.*;
 import components.simulationLogic.SimulationComponent;
 import components.simulationLogic.report.SimulationStepReport;
 import configLoader.ConfigLoader;
@@ -204,6 +199,9 @@ public class SimulationMaunualConfigurationOptionDialog extends JDialog {
                 break;
             case RelativeFreeNodes:
                 simulationComponent.setCurrentSimulation(new SimulationRelativeFreeNodes(simulationComponent.getGraph(), simulationComponent.getSimulationModel()));
+                break;
+            case WeighedCommonNeighbors:
+                simulationComponent.setCurrentSimulation(new SimulationWeighedCommonNeighbours(simulationComponent.getGraph(), simulationComponent.getSimulationModel()));
                 break;
             default:
                 break;

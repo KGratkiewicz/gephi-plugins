@@ -10,7 +10,5 @@ import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
 @NoArgsConstructor
-@AllArgsConstructor
-public class RelativeFreeEdgesInteraction extends Interaction {
-    private Integer number;
+public class RelativeFreeEdgesInteraction extends NumberBasedInteraction {
 }

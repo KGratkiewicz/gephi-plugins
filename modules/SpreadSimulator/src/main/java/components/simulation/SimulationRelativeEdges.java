@@ -38,15 +38,19 @@ public class SimulationRelativeEdges extends Simulation {
         var selectedNodes = new ArrayList<>(List.of(nodes.toArray()));
         var selectedEges = new ArrayList<>(List.of(edges.toArray()));
 
+
+        Collections.shuffle(selectedEges);
+
         var interaction = (RelativeEdgesInteraction) simulationModel.getInteraction();
 
         var changesNodes = new ArrayList<Node>();
 
-        for (int i = 0; (double) i / selectedEges.size() < interaction.getPercentage(); i+=2) {
+        for (int i = 0; i < interaction.getPercentage() * edges.toArray().length; i++) {
 
-            var edge = GetRandomEdge(selectedEges);
+            var edge = selectedEges.get(i);
             var node = edge.getSource();
             var neighbour = edge.getTarget();
+            selectedEges.add(edge);
             changesNodes.add(node);
             changesNodes.add(neighbour);
             GetTransitionByNode(node, neighbour);
@@ -82,13 +86,6 @@ public class SimulationRelativeEdges extends Simulation {
                     throw new NotImplementedException(ConfigLoader.messageErrorUnknownTransitionType);
             }
         }
-    }
-
-    private Edge GetRandomEdge(ArrayList<Edge> edeges) {
-        Collections.shuffle(edeges);
-        var newNode = edeges.get(0);
-        edeges.remove(0);
-        return newNode;
     }
 
     private void NoConditionProbabilityNode(Node node, Transition transition) {

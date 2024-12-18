@@ -10,12 +10,7 @@ import components.reverseSimulation.buttons.reverseStep.PredictSimulationByRever
 import components.reverseSimulation.buttons.reverseStep.report.ReportButton;
 import components.reverseSimulation.buttons.reverseStep.visibility.VisibilityOptionsButton;
 import components.reverseSimulation.model.NodeData;
-import components.simulation.Simulation;
-import components.simulation.SimulationAll;
-import components.simulation.SimulationRelativeEdges;
-import components.simulation.SimulationRelativeFreeEdges;
-import components.simulation.SimulationRelativeFreeNodes;
-import components.simulation.SimulationRelativeNodes;
+import components.simulation.*;
 import components.simulationLogic.SimulationComponent;
 import configLoader.ConfigLoader;
 import helper.ApplySimulationHelper;
@@ -27,6 +22,7 @@ import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.windows.TopComponent;
 import simulationModel.SimulationModel;
+import simulationModel.interaction.WeightedCommonNeigboursInteraction;
 import simulationModel.node.NodeRoleDecorator;
 
 import javax.swing.*;
@@ -168,6 +164,9 @@ public class ReverseSimulationComponent extends TopComponent {
             case RelativeFreeNodes:
                 this.currentSimulation = new SimulationRelativeFreeNodes(graph, simulationModel);
                 break;
+            case WeighedCommonNeighbors:
+                this.currentSimulation = new SimulationWeighedCommonNeighbours(graph, simulationModel);
+                break;
             default:
                 break;
         }
@@ -220,6 +219,10 @@ public class ReverseSimulationComponent extends TopComponent {
                 case RelativeFreeNodes:
                     this.previousStepSimulation = currentSimulation;
                     this.currentSimulation = new SimulationRelativeFreeNodes(graph, simulationModel);
+                    break;
+                case WeighedCommonNeighbors:
+                    this.previousStepSimulation = currentSimulation;
+                    this.currentSimulation = new SimulationWeighedCommonNeighbours(graph, simulationModel);
                     break;
                 default:
                     break;

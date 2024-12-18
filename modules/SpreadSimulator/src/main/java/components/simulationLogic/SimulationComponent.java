@@ -1,11 +1,6 @@
 package components.simulationLogic;
 
-import components.simulation.Simulation;
-import components.simulation.SimulationAll;
-import components.simulation.SimulationRelativeEdges;
-import components.simulation.SimulationRelativeFreeEdges;
-import components.simulation.SimulationRelativeFreeNodes;
-import components.simulation.SimulationRelativeNodes;
+import components.simulation.*;
 import configLoader.ConfigLoader;
 import helper.ApplySimulationHelper;
 import helper.ObjectMapperHelper;
@@ -138,6 +133,9 @@ public class SimulationComponent extends TopComponent {
             case RelativeFreeNodes:
                 this.currentSimulation = new SimulationRelativeFreeNodes(graph, simulationModel);
                 break;
+            case WeighedCommonNeighbors:
+                this.currentSimulation = new SimulationWeighedCommonNeighbours(graph, simulationModel);
+                break;
             default:
                 break;
         }
@@ -169,7 +167,7 @@ public class SimulationComponent extends TopComponent {
                 seriesButtonActionPerformed(e);
             }
         } catch (NullPointerException ex) {
-            JOptionPane.showMessageDialog(null, "Set up graph model first");
+            JOptionPane.showMessageDialog(null, "Setup graph model first");
         } catch (JsonMappingException ex) {
             throw new RuntimeException(ex);
         } catch (JsonParseException ex) {
@@ -208,6 +206,9 @@ public class SimulationComponent extends TopComponent {
                 break;
             case RelativeFreeEdges:
                 interactionMessage = "RelativeFreeEdges: " + ((RelativeFreeEdgesInteraction) interaction).getNumber();
+                break;
+            case WeighedCommonNeighbors:
+                interactionMessage = "WeighedCommonNeighbors";
                 break;
         }
         var interactionLabel = new JLabel("Interaction: " + interactionMessage);

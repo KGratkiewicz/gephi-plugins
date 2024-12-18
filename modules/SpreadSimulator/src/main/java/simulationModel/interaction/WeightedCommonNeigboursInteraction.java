@@ -1,6 +1,5 @@
 package simulationModel.interaction;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -10,5 +9,5 @@ import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
 @NoArgsConstructor
-public class RelativeEdgesInteraction extends PercentageBasedInteraction {
+public class WeightedCommonNeigboursInteraction extends Interaction {
 }

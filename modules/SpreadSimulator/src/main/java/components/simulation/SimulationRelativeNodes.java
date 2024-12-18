@@ -54,7 +54,7 @@ public class SimulationRelativeNodes extends Simulation {
             n.setAttribute(ConfigLoader.colNameNodeState, n.getAttribute(ConfigLoader.colNameNewNodeState).toString());
         }
 
-        ApplySimulationHelper.PaintGraph(List.of(nodes.toArray()), nodeRoleDecoratorList);
+        ApplySimulationHelper.PaintGraph(List.of(nodes.toArray()), simulationModel.getNodeRoles());
         table.removeColumn(ConfigLoader.colNameNewNodeState);
         GenerateNodeDecoratorList();
         this.report.add(new SimulationStepReport(this.step, this.nodeRoleDecoratorList));

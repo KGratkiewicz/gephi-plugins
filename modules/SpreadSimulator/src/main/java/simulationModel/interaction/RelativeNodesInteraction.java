@@ -10,7 +10,5 @@ import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
 @NoArgsConstructor
-@AllArgsConstructor
-public class RelativeNodesInteraction extends Interaction {
-    private Double percentage;
+public class RelativeNodesInteraction extends PercentageBasedInteraction {
 }

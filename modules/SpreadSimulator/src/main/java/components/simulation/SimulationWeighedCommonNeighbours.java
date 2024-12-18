@@ -3,36 +3,45 @@ package components.simulation;
 import components.simulationLogic.report.SimulationStepReport;
 import configLoader.ConfigLoader;
 import helper.ApplySimulationHelper;
-import simulationModel.SimulationModel;
-import simulationModel.transition.Transition;
-import simulationModel.transition.TransitionCondition;
-import simulationModel.transition.TransitionNoCondition;
+import org.gephi.graph.api.Edge;
 import org.gephi.graph.api.Graph;
 import org.gephi.graph.api.Node;
 import org.openide.util.NotImplementedException;
+import simulationModel.SimulationModel;
+import simulationModel.interaction.RelativeFreeEdgesInteraction;
+import simulationModel.transition.Transition;
+import simulationModel.transition.TransitionCondition;
+import simulationModel.transition.TransitionNoCondition;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
+import javax.swing.*;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
-public class SimulationAll extends Simulation {
+public class SimulationWeighedCommonNeighbours extends Simulation {
 
-    public SimulationAll(Graph graph, SimulationModel simulationModel) {
+    public SimulationWeighedCommonNeighbours(Graph graph, SimulationModel simulationModel) {
         super(graph, simulationModel);
     }
 
     @Override
-    public void Step(){
+    protected boolean Validate(){
+        if(!graph.getModel().getEdgeTable().hasColumn("WCN")){
+            JOptionPane.showMessageDialog(null, "Run Weighed Common Neighbours statistics first", "Error", JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public void Step() {
         step += 1;
         var table = graph.getModel().getNodeTable();
-        if(!table.hasColumn(ConfigLoader.colNameNewNodeState))
+        if (!table.hasColumn(ConfigLoader.colNameNewNodeState))
             table.addColumn(ConfigLoader.colNameNewNodeState, String.class);
         var nodes = graph.getNodes();
 
-        var selectedNodes = new ArrayList<> (List.of(nodes.toArray()));
+        var selectedNodes = new ArrayList<>(List.of(nodes.toArray()));
 
         for (Node node : selectedNodes) {
             node.setAttribute(ConfigLoader.colNameNewNodeState, node.getAttribute(ConfigLoader.colNameNodeState).toString());
@@ -54,9 +63,8 @@ public class SimulationAll extends Simulation {
                 }
             }
         }
-
-        for (Node node : selectedNodes) {
-            node.setAttribute(ConfigLoader.colNameNodeState, node.getAttribute(ConfigLoader.colNameNewNodeState).toString());
+        for (Node n : selectedNodes) {
+            n.setAttribute(ConfigLoader.colNameNodeState, n.getAttribute(ConfigLoader.colNameNewNodeState).toString());
         }
 
         ApplySimulationHelper.PaintGraph(List.of(nodes.toArray()), simulationModel.getNodeRoles());
@@ -76,9 +84,25 @@ public class SimulationAll extends Simulation {
     }
 
     private void ConditionProbabilityNode(Graph graph, Node node, Transition transition) {
+        var random = new Random();
+        var edgesOfNode = graph.getEdges(node);
+        var selectedEdges = edgesOfNode.toCollection().stream().filter(edge -> {
+            var roll = random.nextDouble();
+            var wcnAttribute = edge.getAttribute("WCN");
+            double threshold = wcnAttribute != null ? Double.parseDouble(wcnAttribute.toString()) : 0.0;
+            return !(roll > threshold);
+        }).collect(Collectors.toList());
+
+        var sourceNodes = selectedEdges.stream().map(x -> x.getSource()).collect(Collectors.toList());
+        var targetNodes = selectedEdges.stream().map(x -> x.getTarget()).collect(Collectors.toList());
+
+
+        var resultSet = new LinkedHashSet<Node>();
+        resultSet.addAll(sourceNodes);
+        resultSet.addAll(targetNodes);
+
         var trn = (TransitionCondition) transition;
-        var neighbours = List.of(graph.getNeighbors(node).toArray());
-        if(!IsInNeighbourhood(neighbours, trn))
+        if(!IsInNeighbourhood(resultSet, trn))
             return;
 
         Random rnd = new Random();
@@ -88,7 +112,7 @@ public class SimulationAll extends Simulation {
         ChangeState(node, trn.getDestinationState());
     }
 
-    private boolean IsInNeighbourhood(List<Node> neighbours, TransitionCondition trn) {
+    private boolean IsInNeighbourhood(LinkedHashSet<Node> neighbours, TransitionCondition trn) {
         var provListName = neighbours.stream().filter(n -> {
             var nodeStateName = n.getAttribute(ConfigLoader.colNameNodeState).toString();
             return trn.getProvocativeNeighborName().contains(nodeStateName);

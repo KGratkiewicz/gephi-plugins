@@ -42,13 +42,14 @@ public class SimulationRelativeFreeEdges extends Simulation {
 
         var changesNodes = new ArrayList<Node>();
 
-        for (int i = 0; (double) i / selectedEges.size() < interaction.getNumber(); i+=2) {
+        for (int i = 0; i < interaction.getNumber(); i++) {
 
             var edge = GetRandomEdge(selectedEges);
             var node = edge.getSource();
             var neighbour = edge.getTarget();
             changesNodes.add(node);
             changesNodes.add(neighbour);
+            selectedEges.add(edge);
             GetTransitionByNode(node, neighbour);
             GetTransitionByNode(neighbour, node);
         }
@@ -57,7 +58,7 @@ public class SimulationRelativeFreeEdges extends Simulation {
             n.setAttribute(ConfigLoader.colNameNodeState, n.getAttribute(ConfigLoader.colNameNewNodeState).toString());
         }
 
-        ApplySimulationHelper.PaintGraph(List.of(nodes.toArray()), nodeRoleDecoratorList);
+        ApplySimulationHelper.PaintGraph(List.of(nodes.toArray()), simulationModel.getNodeRoles());
         table.removeColumn(ConfigLoader.colNameNewNodeState);
         GenerateNodeDecoratorList();
         this.report.add(new SimulationStepReport(this.step, this.nodeRoleDecoratorList));

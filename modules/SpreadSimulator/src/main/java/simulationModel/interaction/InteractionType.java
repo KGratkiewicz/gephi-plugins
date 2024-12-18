@@ -5,5 +5,6 @@ public enum InteractionType {
     RelativeNodes,
     RelativeFreeNodes,
     RelativeEdges,
-    RelativeFreeEdges
+    RelativeFreeEdges,
+    WeighedCommonNeighbors,
 }

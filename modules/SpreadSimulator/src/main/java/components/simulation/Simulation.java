@@ -35,6 +35,13 @@ public abstract class Simulation implements Cloneable {
         report = new ArrayList<>();
         step = 0;
         this.simulationModel = simulationModel;
+        if(!Validate()){
+            throw new RuntimeException("Something went wrong during creating simulation");
+        }
+    }
+
+    protected boolean Validate() {
+        return true;
     }
 
     protected void GenerateNodeDecoratorList() {
