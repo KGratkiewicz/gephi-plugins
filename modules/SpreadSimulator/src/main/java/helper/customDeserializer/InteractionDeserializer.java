@@ -44,6 +44,8 @@ public class InteractionDeserializer extends StdDeserializer<Interaction> {
                 return mapper.readValue(node, RelativeFreeEdgesInteraction.class);
             case WeighedCommonNeighbors:
                 return mapper.readValue(node, WeightedCommonNeigboursInteraction.class);
+            case CommunityPressureInteraction:
+                return mapper.readValue(node, CommunityPressureInteraction.class);
             default:
                 return mapper.readValue(node, Interaction.class);
         }

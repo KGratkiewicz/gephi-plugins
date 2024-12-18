@@ -136,6 +136,9 @@ public class SimulationComponent extends TopComponent {
             case WeighedCommonNeighbors:
                 this.currentSimulation = new SimulationWeighedCommonNeighbours(graph, simulationModel);
                 break;
+            case CommunityPressureInteraction:
+                this.currentSimulation = new SimulationCommunityPreasure(graph, simulationModel);
+                break;
             default:
                 break;
         }
@@ -209,6 +212,9 @@ public class SimulationComponent extends TopComponent {
                 break;
             case WeighedCommonNeighbors:
                 interactionMessage = "WeighedCommonNeighbors";
+                break;
+            case CommunityPressureInteraction:
+                interactionMessage = "CommunityPressureInteraction";
                 break;
         }
         var interactionLabel = new JLabel("Interaction: " + interactionMessage);

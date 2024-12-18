@@ -340,6 +340,9 @@ public class SimulationAutomaticConfigurationOptionDialog extends JDialog {
             case WeighedCommonNeighbors:
                 simulationComponent.setCurrentSimulation(new SimulationWeighedCommonNeighbours(simulationComponent.getGraph(), simulationComponent.getSimulationModel()));
                 break;
+            case CommunityPressureInteraction:
+                simulationComponent.setCurrentSimulation(new SimulationCommunityPreasure(simulationComponent.getGraph(), simulationComponent.getSimulationModel()));
+                break;
             default:
                 break;
         }
