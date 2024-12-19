@@ -146,7 +146,7 @@ public class ReverseSimulationComponent extends TopComponent {
                     node.setAttribute(ConfigLoader.colNameNodeState, node.getAttribute(ConfigLoader.colNameInitialNodeState));
             });
             simulationStatesList.add(nodesLastStepState);
-            ApplySimulationHelper.PaintGraph(nodes, currentSimulation.getNodeRoleDecoratorList());
+            ApplySimulationHelper.PaintGraph(nodes, simulationModel.getNodeRoles());
         }
         switch (simulationModel.getInteraction().getInteractionType()){
             case All:

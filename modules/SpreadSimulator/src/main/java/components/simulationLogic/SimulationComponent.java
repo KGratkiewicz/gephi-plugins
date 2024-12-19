@@ -115,7 +115,7 @@ public class SimulationComponent extends TopComponent {
             simulationSeries = simulationList.size() + 1;
             var nodes =  new ArrayList<> (List.of(graph.getNodes().toArray()));
             nodes.forEach(node -> node.setAttribute(ConfigLoader.colNameNodeState.toString(), node.getAttribute(ConfigLoader.colNameRootState).toString()));
-            ApplySimulationHelper.PaintGraph(nodes, currentSimulation.getNodeRoleDecoratorList());
+            ApplySimulationHelper.PaintGraph(nodes, simulationModel.getNodeRoles());
         }
         switch (simulationModel.getInteraction().getInteractionType()){
             case All:
