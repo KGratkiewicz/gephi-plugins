@@ -8,4 +8,5 @@ public enum InteractionType {
     RelativeFreeEdges,
     WeighedCommonNeighbors,
     CommunityPressureInteraction,
+    WeightedEdges
 }

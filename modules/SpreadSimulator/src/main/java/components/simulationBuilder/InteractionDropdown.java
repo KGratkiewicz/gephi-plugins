@@ -14,7 +14,7 @@ public class InteractionDropdown {
 
     public JComboBox<String> generate(SimulationBuilderComponent simulationBuilderComponent) {
         String[] interactionOptions = {
-                "All", "RelativeNodes", "RelativeFreeNodes", "RelativeEdges", "RelativeFreeEdges", "WeighedCommonNeighbours", "CommunityPressure"
+                "All", "RelativeNodes", "RelativeFreeNodes", "RelativeEdges", "RelativeFreeEdges", "WeighedCommonNeighbours", "CommunityPressure", "WeightedEdges"
         };
 
         JComboBox<String> combobox = new JComboBox<>(interactionOptions);
@@ -80,6 +80,10 @@ public class InteractionDropdown {
                     break;
                 case "CommunityPressure":
                     setInteraction(new CommunityPressureInteraction(), InteractionType.CommunityPressureInteraction);
+                    resetUI();
+                    break;
+                case "WeightedEdges":
+                    setInteraction(new WeightedEdgesInteraction(), InteractionType.WeightedEdges);
                     resetUI();
                     break;
                 default:

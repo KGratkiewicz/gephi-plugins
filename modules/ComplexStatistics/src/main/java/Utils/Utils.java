@@ -1,9 +1,6 @@
 package Utils;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.Stack;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -197,6 +194,31 @@ public class Utils {
             progressTicket.progress(1);
         });
 
+        return edgeCount.get() > 0 ? totalWCN.get() / edgeCount.get() : 0.0;
+    }
+
+    public static double randomWeightedEdgesIndirect(Graph graph, boolean isDirected, Boolean cancel, ProgressTicket progressTicket, String columnName, Double mean) {
+        var edges = new ArrayList<>(graph.getEdges().toCollection());
+        Collections.shuffle(edges);
+        AtomicReference<Double> totalWCN = new AtomicReference<>(0.0);
+        AtomicInteger edgeCount = new AtomicInteger();
+        var random = new Random();
+        var first = random.nextDouble();
+        edges.get(0).setAttribute(columnName, first);
+        edgeCount.getAndIncrement();
+        totalWCN.updateAndGet(v -> new Double((double) (v + first)));
+
+        edges.stream().skip(1).forEach(edge -> {
+            double wcn;
+            if(totalWCN.get()/edgeCount.get() > mean)
+                wcn = random.nextDouble() * mean;
+            else
+                wcn = mean + random.nextDouble() * (1 - mean);
+            edge.setAttribute(columnName, wcn);
+            totalWCN.updateAndGet(v -> new Double((double) (v + wcn)));
+            edgeCount.getAndIncrement();
+            progressTicket.progress(1);
+        });
         return edgeCount.get() > 0 ? totalWCN.get() / edgeCount.get() : 0.0;
     }
 

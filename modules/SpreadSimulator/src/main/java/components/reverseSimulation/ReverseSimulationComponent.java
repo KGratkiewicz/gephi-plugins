@@ -170,6 +170,9 @@ public class ReverseSimulationComponent extends TopComponent {
             case CommunityPressureInteraction:
                 this.currentSimulation = new SimulationCommunityPreasure(graph, simulationModel);
                 break;
+            case WeightedEdges:
+                this.currentSimulation = new SimulationWeighedEdges(graph, simulationModel);
+                break;
             default:
                 break;
         }
@@ -230,6 +233,10 @@ public class ReverseSimulationComponent extends TopComponent {
                 case CommunityPressureInteraction:
                     this.previousStepSimulation = currentSimulation;
                     this.currentSimulation = new SimulationCommunityPreasure(graph, simulationModel);
+                    break;
+                case WeightedEdges:
+                    this.previousStepSimulation = currentSimulation;
+                    this.currentSimulation = new SimulationWeighedEdges(graph, simulationModel);
                     break;
                 default:
                     break;

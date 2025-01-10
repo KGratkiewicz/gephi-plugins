@@ -206,6 +206,9 @@ public class SimulationMaunualConfigurationOptionDialog extends JDialog {
             case CommunityPressureInteraction:
                 simulationComponent.setCurrentSimulation(new SimulationCommunityPreasure(simulationComponent.getGraph(), simulationComponent.getSimulationModel()));
                 break;
+            case WeightedEdges:
+                simulationComponent.setCurrentSimulation(new SimulationWeighedEdges(simulationComponent.getGraph(), simulationComponent.getSimulationModel()));
+                break;
             default:
                 break;
         }

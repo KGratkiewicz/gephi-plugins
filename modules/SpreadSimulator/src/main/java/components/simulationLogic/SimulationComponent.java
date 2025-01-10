@@ -5,10 +5,7 @@ import configLoader.ConfigLoader;
 import helper.ApplySimulationHelper;
 import helper.ObjectMapperHelper;
 import lombok.Setter;
-import simulationModel.interaction.RelativeEdgesInteraction;
-import simulationModel.interaction.RelativeFreeEdgesInteraction;
-import simulationModel.interaction.RelativeFreeNodesInteraction;
-import simulationModel.interaction.RelativeNodesInteraction;
+import simulationModel.interaction.*;
 import simulationModel.node.NodeRoleDecorator;
 import simulationModel.node.NodeStateDecorator;
 import simulationModel.SimulationModel;
@@ -139,6 +136,9 @@ public class SimulationComponent extends TopComponent {
             case CommunityPressureInteraction:
                 this.currentSimulation = new SimulationCommunityPreasure(graph, simulationModel);
                 break;
+            case WeightedEdges:
+                this.currentSimulation = new SimulationWeighedEdges(graph, simulationModel);
+                break;
             default:
                 break;
         }
@@ -215,6 +215,9 @@ public class SimulationComponent extends TopComponent {
                 break;
             case CommunityPressureInteraction:
                 interactionMessage = "CommunityPressureInteraction";
+                break;
+            case WeightedEdges:
+                interactionMessage = "WeightedEdges";
                 break;
         }
         var interactionLabel = new JLabel("Interaction: " + interactionMessage);
