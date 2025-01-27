@@ -16,6 +16,7 @@
         <module>modules/ComplexStatistics</module>
         <module>modules/RemovalStrategyFilter</module>
         <module>modules/SpreadSimulator</module>
+        <module>modules/CyberGlobalImporter</module>
     </modules>
     
     <!-- Properties -->

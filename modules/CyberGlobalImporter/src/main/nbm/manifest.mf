@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+OpenIDE-Module-Name: Cyber Global Importer
+OpenIDE-Module-Short-Description: Importer to cyber global data
+OpenIDE-Module-Long-Description: Importer to cyber global data
+OpenIDE-Module-Display-Category: Import
