@@ -15,35 +15,51 @@
     <name>Cyber Global Importer</name>
 
     <dependencies>
-        <!-- Insert dependencies here -->
+
+        <!-- Gephi graph-api (pojawia się w komunikacie błędu) -->
+        <dependency>
+            <groupId>org.gephi</groupId>
+            <artifactId>graph-api</artifactId>
+            <version>0.10.0</version>
+        </dependency>
+
+        <!-- Gephi importer API (dodajemy wersję 0.10.0) -->
         <dependency>
             <groupId>org.gephi</groupId>
             <artifactId>io-importer-api</artifactId>
+            <version>0.10.0</version>
         </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>2.15.2</version>
-        </dependency>
+
+        <!-- Gephi DB drivers -->
         <dependency>
             <groupId>org.gephi</groupId>
             <artifactId>db-drivers</artifactId>
             <version>0.10.0</version>
         </dependency>
 
+        <!-- Gephi utils-longtask -->
         <dependency>
             <groupId>org.gephi</groupId>
             <artifactId>utils-longtask</artifactId>
             <version>0.10.0</version>
         </dependency>
 
+        <!-- NetBeans filesystem API -->
         <dependency>
             <groupId>org.netbeans.api</groupId>
             <artifactId>org-openide-filesystems</artifactId>
             <version>RELEASE160</version>
         </dependency>
 
+        <!-- Jackson do JSON-a -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.15.2</version>
+        </dependency>
+
     </dependencies>
+
 
     <build>
         <plugins>

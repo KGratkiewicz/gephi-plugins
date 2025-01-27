@@ -6,6 +6,8 @@ import java.io.Reader;
 
 import CyberGlobalImporter.Model.AeonTimelineRoot;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.gephi.graph.api.TimeFormat;
+import org.gephi.graph.api.TimeRepresentation;
 import org.gephi.io.importer.api.ContainerLoader;
 import org.gephi.io.importer.api.ImportUtils;
 import org.gephi.io.importer.api.Report;
@@ -18,6 +20,7 @@ public class CyberGlobalImporter implements FileImporter, LongTask {
     private ContainerLoader container;
     private Report report;
     private ProgressTicket progressTicket;
+    private boolean isDynamic = false;
     private boolean cancel = false;
 
     @Override
@@ -26,7 +29,10 @@ public class CyberGlobalImporter implements FileImporter, LongTask {
         this.report = new Report();
         //Import
         try{
-            importData(reader);
+            if(!isDynamic)
+                importData(reader);
+            else
+                importDynamicData(reader);
         }catch(IOException e){}
         return !cancel;
     }
@@ -48,6 +54,55 @@ public class CyberGlobalImporter implements FileImporter, LongTask {
             container.addNodeColumn("locationUri", String.class);
             for (var item : items) {
                 var node = container.factory().newNodeDraft(item.getId());
+                node.setValue("type", item.getType());
+                node.setLabel(item.getLabel());
+                node.setValue("start", item.getStart());
+                node.setValue("latestStart", item.getLatestStart());
+                node.setValue("earliestEnd", item.getEarliestEnd());
+                node.setValue("end", item.getEnd());
+                node.setValue("ongoing", item.isOngoing());
+                node.setValue("super", item.getSuperItem());
+                node.setValue("locationUri", item.getLocationUri());
+                var values = item.getPropertyValues();
+                values.entrySet().forEach(x -> container.addNodeColumn(x.getKey(), String.class));
+                values.entrySet().forEach(x -> node.setValue(x.getKey(), values.getOrDefault(x.getKey(), x.getValue())));
+                container.addNode(node);
+            }
+            container.addEdgeColumn("relationshipType", String.class);
+            for (var relation : relations) {
+                var edge = container.factory().newEdgeDraft(relation.getId());
+                var source = container.getNode(relation.getSubject());
+                var target = container.getNode(relation.getTarget());
+                edge.setSource(source);
+                edge.setTarget(target);
+                edge.setValue("relationshipType", relation.getRelationshipType());
+                container.addEdge(edge);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void importDynamicData(Reader reader) throws IOException {
+        var objectMapper = new ObjectMapper();
+        try (LineNumberReader lineReader = ImportUtils.getTextReader(reader)) {
+            AeonTimelineRoot root = objectMapper.readValue(lineReader, AeonTimelineRoot.class);
+            var data = root.getData();
+            var items = data.getItems();
+            var relations = data.getRelationships();
+            container.setTimeRepresentation(TimeRepresentation.INTERVAL);
+            container.setTimeFormat(TimeFormat.DATE);
+            container.addNodeColumn("type", String.class);
+            container.addNodeColumn("start", String.class);
+            container.addNodeColumn("latestStart", String.class);
+            container.addNodeColumn("earliestEnd", String.class);
+            container.addNodeColumn("end", String.class);
+            container.addNodeColumn("ongoing", Boolean.class);
+            container.addNodeColumn("super", String.class);
+            container.addNodeColumn("locationUri", String.class);
+            for (var item : items) {
+                var node = container.factory().newNodeDraft(item.getId());
+                node.addInterval(item.getStart(), item.getEnd());
                 node.setValue("type", item.getType());
                 node.setLabel(item.getLabel());
                 node.setValue("start", item.getStart());
@@ -100,5 +155,9 @@ public class CyberGlobalImporter implements FileImporter, LongTask {
     @Override
     public void setProgressTicket(ProgressTicket progressTicket) {
         this.progressTicket = progressTicket;
+    }
+
+    public void setDynamic(boolean dynamic) {
+        isDynamic = dynamic;
     }
 }

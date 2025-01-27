@@ -12,18 +12,24 @@ public class CyberGlobalImporterUI implements ImporterUI {
         private JPanel panel;
         private JCheckBox option;
         private CyberGlobalImporter importer;
+        private boolean dynamic;
 
     @Override
     public void setup(Importer[] importers) {
-        this.importer = (CyberGlobalImporter) importer;
+        this.importer = (CyberGlobalImporter)importers[0];
     }
 
     public JPanel getPanel() {
-            panel = new JPanel();
-            return panel;
+        panel = new JPanel();
+        option = new JCheckBox("Dynamic");
+        panel.add(option);
+        return panel;
         }
 
         public void unsetup(boolean update) {
+            if(update) {
+                importer.setDynamic(option.isSelected());
+            }
             panel = null;
             importer = null;
             option = null;
